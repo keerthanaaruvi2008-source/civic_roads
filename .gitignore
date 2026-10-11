@@ -1,7 +1,6 @@
 build/
 .gradle/
 bin/
-models/*.onnx
 *.class
 .idea/
 .vscode/
