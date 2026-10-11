@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+javafx {
+    version = '21.0.5'
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.openpnp:opencv:4.9.0-0'
+    implementation 'com.microsoft.onnxruntime:onnxruntime:1.19.2'
+    testImplementation platform('org.junit:junit-bom:5.10.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params'
+}
+
+application {
+    mainClass = 'com.roaddamage.Main'
+}
+
+run {
+    jvmArgs = ['--enable-native-access=ALL-UNNAMED', '-Xms512m', '-Xmx2g']
+    systemProperty 'java.awt.headless', 'false'
+    systemProperty 'testfx.headless', 'false'
+    standardInput = System.in
+}
+
+tasks.register('runWeb', JavaExec) {
+    group = 'application'
+    description = 'Launches the Civic Roads Governance Web Platform at http://127.0.0.1:8000'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.roaddamage.web.CivicWebServer'
+    jvmArgs = ['--enable-native-access=ALL-UNNAMED', '-Xms256m', '-Xmx1g']
+    standardInput = System.in
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs '--enable-native-access=ALL-UNNAMED', '-Xmx2g'
+    systemProperties System.properties
+}
+
+compileJava {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xlint:all', '-Werror']
+}
+
+compileTestJava {
+    options.encoding = 'UTF-8'
+}

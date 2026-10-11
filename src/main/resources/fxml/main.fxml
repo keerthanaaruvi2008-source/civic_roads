@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import com.roaddamage.ui.AnnotatedCanvas?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.roaddamage.ui.MainController"
+            prefWidth="1340.0" prefHeight="860.0" styleClass="main-root">
+
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="14.0" styleClass="role-header-bar">
+            <Label text="Road Damage Governance &amp; AI Inspection Platform" styleClass="app-title-label" />
+            <Separator orientation="VERTICAL" />
+
+            <HBox alignment="CENTER_LEFT" spacing="8.0" HBox.hgrow="ALWAYS">
+                <Label text="Access State:" styleClass="portal-label" />
+                <Label fx:id="authUserLabel" text="Public (Citizen Mode)" styleClass="portal-value-highlight" />
+            </HBox>
+
+            <Button fx:id="authActionBtn" text="Staff Sign In" onAction="#onAuthAction" styleClass="primary-button" />
+            <Separator orientation="VERTICAL" />
+            <Button fx:id="themeToggleBtn" text="☀️ Light Mode" onAction="#onToggleTheme" styleClass="theme-toggle-button" />
+        </HBox>
+    </top>
+
+    <center>
+        <TabPane fx:id="roleTabPane" tabClosingPolicy="UNAVAILABLE" styleClass="role-tab-pane">
+
+            <!-- TAB 1: CITIZEN PORTAL (Default Home Screen) -->
+            <Tab fx:id="citizenTab" text="Citizen Portal">
+                <SplitPane orientation="HORIZONTAL" dividerPositions="0.45" styleClass="portal-root">
+                    <!-- Left: Consumer Step-by-Step Report Form -->
+                    <ScrollPane fitToWidth="true" styleClass="canvas-scroll-pane">
+                        <VBox spacing="14.0" styleClass="citizen-form-container">
+                            <!-- Header -->
+                            <VBox spacing="3.0">
+                                <Label text="Report Road Distress or Hazard" styleClass="portal-card-header" />
+                                <Label text="Submit road potholes and surface hazards directly to municipal authorities for prompt remediation." styleClass="portal-label" wrapText="true" />
+                            </VBox>
+
+                            <!-- STEP 1: PHOTO EVIDENCE UPLOAD -->
+                            <VBox spacing="8.0" styleClass="citizen-step-card">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="STEP 1" styleClass="step-tag" />
+                                    <Label text="Upload Road Distress Photo" styleClass="step-title" />
+                                </HBox>
+
+                                <!-- Prominent Upload Zone / Drag-and-Drop Card -->
+                                <StackPane fx:id="citizenUploadZone" onMouseClicked="#onCitizenBrowsePhoto" styleClass="upload-drop-zone">
+                                    <VBox fx:id="citizenUploadPromptBox" alignment="CENTER" spacing="6.0" styleClass="upload-prompt-box">
+                                        <Label text="📷" styleClass="upload-icon" />
+                                        <Label text="Drop Road Photo Here or Click to Upload" styleClass="upload-heading" />
+                                        <Label text="Supports JPG, JPEG, and PNG (Camera / Storage)" styleClass="upload-subtext" />
+                                    </VBox>
+                                    <VBox fx:id="citizenPreviewContainer" alignment="CENTER" spacing="6.0" visible="false" managed="false">
+                                        <ImageView fx:id="citizenImagePreview" fitWidth="350.0" fitHeight="175.0" preserveRatio="true" styleClass="preview-image" />
+                                        <Button text="Change Photo" onAction="#onCitizenBrowsePhoto" styleClass="secondary-pill-button" />
+                                    </VBox>
+                                </StackPane>
+
+                                <!-- Hidden fields preserved for compatibility -->
+                                <HBox visible="false" managed="false">
+                                    <TextField fx:id="citizenPhotoField" />
+                                    <Button fx:id="citizenPhotoBrowseBtn" onAction="#onCitizenBrowsePhoto" />
+                                </HBox>
+
+                                <!-- Automatic Severity Evaluation & Turnaround Estimate -->
+                                <VBox spacing="6.0" styleClass="severity-preview-panel">
+                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                        <Label fx:id="citizenSeverityBadge" text="HIGH SEVERITY" styleClass="badge-high" />
+                                        <Label fx:id="citizenTurnaroundLabel" text="Estimated Repair Turnaround: ~48 Hours" wrapText="true" styleClass="portal-label" HBox.hgrow="ALWAYS" />
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+
+                            <!-- STEP 2: ROAD LOCATION & LANDMARK -->
+                            <VBox spacing="8.0" styleClass="citizen-step-card">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="STEP 2" styleClass="step-tag" />
+                                    <Label text="Road Location &amp; Landmark" styleClass="step-title" />
+                                </HBox>
+
+                                <VBox spacing="4.0">
+                                    <Label text="Area / Municipal Corridor:" styleClass="portal-label" />
+                                    <ComboBox fx:id="citizenAreaBox" maxWidth="Infinity" onAction="#onCitizenAreaSelected" promptText="Select Area / City Corridor..." />
+                                </VBox>
+
+                                <VBox spacing="4.0">
+                                    <Label text="Road / Street Address &amp; Landmark:" styleClass="portal-label" />
+                                    <TextField fx:id="citizenAddressField" promptText="e.g., Mount Road, near Signal, Guindy, Chennai" />
+                                </VBox>
+
+                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                    <Button fx:id="citizenCurrentLocationBtn" text="📍 Use Current Location" onAction="#onCitizenUseCurrentLocation" styleClass="location-button" />
+                                    <Label fx:id="citizenGpsStatusLabel" text="📍 GPS Ready (Auto-Detect)" styleClass="gps-badge" HBox.hgrow="ALWAYS" />
+                                </HBox>
+
+                                <!-- Hidden compatibility fields -->
+                                <HBox visible="false" managed="false">
+                                    <TextField fx:id="citizenLatField" text="12.97162" />
+                                    <TextField fx:id="citizenLonField" text="77.59459" />
+                                    <ComboBox fx:id="citizenGpsPresetBox" />
+                                </HBox>
+                            </VBox>
+
+                            <!-- STEP 3: SEVERITY & DESCRIPTION -->
+                            <VBox spacing="8.0" styleClass="citizen-step-card">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="STEP 3" styleClass="step-tag" />
+                                    <Label text="Severity &amp; Description" styleClass="step-title" />
+                                </HBox>
+
+                                <VBox spacing="4.0">
+                                    <Label text="Observed Distress Severity:" styleClass="portal-label" />
+                                    <ComboBox fx:id="citizenSeverityBox" maxWidth="Infinity" onAction="#onCitizenSeverityChanged" promptText="Select Severity Level..." />
+                                </VBox>
+
+                                <VBox spacing="4.0">
+                                    <Label text="Issue Description / Hazard Details:" styleClass="portal-label" />
+                                    <TextField fx:id="citizenDescField" promptText="e.g. Deep pothole causing two-wheeler traffic bottleneck..." />
+                                </VBox>
+                            </VBox>
+
+                            <!-- SUBMIT REPORT BUTTON -->
+                            <Button fx:id="citizenSubmitBtn" text="🚀 Submit Road Issue Report" onAction="#onCitizenSubmit" maxWidth="Infinity" styleClass="primary-large-button" />
+                        </VBox>
+                    </ScrollPane>
+
+                    <!-- Right: Grievance Status Cards Tracker -->
+                    <VBox spacing="12.0" styleClass="portal-card">
+                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                            <VBox HBox.hgrow="ALWAYS">
+                                <Label text="Reported Road Issues &amp; Repair Status" styleClass="portal-card-header" />
+                                <Label text="Live timeline and 4-step repair progression for community grievances." styleClass="portal-label" />
+                            </VBox>
+                            <Label fx:id="citizenTicketCountBadge" text="3 Active" styleClass="ticket-count-badge" />
+                        </HBox>
+
+                        <!-- Search and Filter Bar -->
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <TextField fx:id="citizenSearchField" promptText="🔍 Search by street, landmark, or ticket #..." HBox.hgrow="ALWAYS" styleClass="search-field" />
+                            <Button text="All" onAction="#onCitizenFilterAll" styleClass="filter-pill-active" fx:id="citizenFilterAllBtn" />
+                            <Button text="Under Repair" onAction="#onCitizenFilterRepair" styleClass="filter-pill" fx:id="citizenFilterRepairBtn" />
+                            <Button text="Fixed" onAction="#onCitizenFilterFixed" styleClass="filter-pill" fx:id="citizenFilterFixedBtn" />
+                        </HBox>
+
+                        <!-- Modern Card List for Tickets -->
+                        <ListView fx:id="citizenTicketList" VBox.vgrow="ALWAYS" styleClass="citizen-card-list" />
+
+                        <!-- Detail banner when card selected -->
+                        <VBox spacing="4.0" styleClass="metric-card">
+                            <Label text="Selected Issue Lifecycle &amp; Verification Stage:" styleClass="metric-title" />
+                            <Label fx:id="citizenTimelineLabel" text="Select any card above to track full lifecycle details." wrapText="true" styleClass="portal-value-highlight" />
+                        </VBox>
+
+                        <!-- Hidden TableView for backward compatibility if ever queried -->
+                        <TableView fx:id="citizenTicketTable" visible="false" managed="false">
+                            <columns>
+                                <TableColumn fx:id="citizenColId" />
+                                <TableColumn fx:id="citizenColSeverity" />
+                                <TableColumn fx:id="citizenColStatus" />
+                                <TableColumn fx:id="citizenColDlp" />
+                                <TableColumn fx:id="citizenColDesc" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+                </SplitPane>
+            </Tab>
+
+            <!-- TAB 2: NODAL OFFICER PORTAL (Staff Protected) -->
+            <Tab fx:id="nodalTab" text="Nodal Officer Portal 🔒">
+                <SplitPane orientation="HORIZONTAL" dividerPositions="0.55" styleClass="portal-root">
+                    <!-- Left: Triage Table -->
+                    <VBox spacing="10.0" styleClass="portal-card">
+                        <HBox alignment="CENTER_LEFT" spacing="12.0">
+                            <Label text="Issues Pending Department Assignment" styleClass="portal-card-header" HBox.hgrow="ALWAYS" />
+                            <Label fx:id="nodalSummaryLabel" text="Active Queue: 0" styleClass="portal-label" />
+                        </HBox>
+                        <TableView fx:id="nodalTable" VBox.vgrow="ALWAYS" styleClass="damage-table">
+                            <columns>
+                                <TableColumn fx:id="nodalColId" text="Ticket ID" prefWidth="85.0" />
+                                <TableColumn fx:id="nodalColGps" text="GPS Coordinates" prefWidth="135.0" />
+                                <TableColumn fx:id="nodalColSeverity" text="Severity" prefWidth="90.0" />
+                                <TableColumn fx:id="nodalColStatus" text="Status" prefWidth="105.0" />
+                                <TableColumn fx:id="nodalColDlp" text="Contractor Warranty" prefWidth="150.0" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- Right: Assignment & Warranty Action Card -->
+                    <VBox spacing="12.0" styleClass="portal-card">
+                        <Label text="Assign Department &amp; Enforce Warranty" styleClass="portal-card-header" />
+                        <Label fx:id="nodalSelectedTicketLabel" text="No ticket selected. Select an issue from the queue." wrapText="true" styleClass="portal-value-highlight" />
+
+                        <!-- Contractor Free Repair Guarantee Banner -->
+                        <Label fx:id="nodalDlpWarningLabel" text="Contractor Free Repair Guarantee: Select an issue to evaluate." wrapText="true" styleClass="dlp-badge-clear" />
+
+                        <VBox spacing="4.0">
+                            <Label text="Statutory Road Authority / Jurisdiction:" styleClass="portal-label" />
+                            <ComboBox fx:id="nodalJurisdictionBox" maxWidth="Infinity" promptText="Select Jurisdiction..." />
+                        </VBox>
+
+                        <VBox spacing="4.0">
+                            <Label text="Designated Repair Contractor:" styleClass="portal-label" />
+                            <TextField fx:id="nodalContractorField" promptText="e.g. Apex Infra Roadways Ltd" />
+                        </VBox>
+
+                        <Button fx:id="nodalAssignBtn" text="Assign Department &amp; Issue Work Order" onAction="#onNodalAssign" maxWidth="Infinity" styleClass="primary-button" />
+                    </VBox>
+                </SplitPane>
+            </Tab>
+
+            <!-- TAB 3: SITE ENGINEER PORTAL (Staff Protected) -->
+            <Tab fx:id="siteTab" text="Site Engineer Portal 🔒">
+                <SplitPane orientation="HORIZONTAL" dividerPositions="0.42" styleClass="portal-root">
+                    <!-- Left: Work Orders List -->
+                    <VBox spacing="10.0" styleClass="portal-card">
+                        <Label text="Assigned Field Work Orders" styleClass="portal-card-header" />
+                        <TableView fx:id="siteTable" VBox.vgrow="ALWAYS" styleClass="damage-table">
+                            <columns>
+                                <TableColumn fx:id="siteColId" text="Ticket ID" prefWidth="85.0" />
+                                <TableColumn fx:id="siteColJurisdiction" text="Agency" prefWidth="120.0" />
+                                <TableColumn fx:id="siteColContractor" text="Contractor" prefWidth="135.0" />
+                                <TableColumn fx:id="siteColStatus" text="Status" prefWidth="100.0" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- Right: Work Order Actions & Side-by-Side Proofs -->
+                    <ScrollPane fitToWidth="true" styleClass="canvas-scroll-pane">
+                        <VBox spacing="10.0" styleClass="portal-card">
+                            <Label text="Site Progression &amp; Before/After Photographic Proofs" styleClass="portal-card-header" />
+                            <Label fx:id="siteSelectedTicketLabel" text="Select a work order from the table to advance status." wrapText="true" styleClass="portal-value-highlight" />
+
+                            <Button fx:id="siteStartWorkBtn" text="Advance Status: Start Physical Repair (IN_PROGRESS)" onAction="#onSiteStartWork" maxWidth="Infinity" styleClass="primary-button" />
+
+                            <Separator />
+
+                            <!-- SIDE-BY-SIDE BEFORE / AFTER PREVIEW IMAGES -->
+                            <Label text="Photographic Verification Proofs (Side-by-Side):" styleClass="portal-label" />
+                            <HBox spacing="10.0" alignment="CENTER">
+                                <VBox spacing="4.0" HBox.hgrow="ALWAYS" alignment="CENTER" styleClass="metric-card">
+                                    <Label text="BEFORE REPAIR PROOF" styleClass="metric-title" />
+                                    <StackPane alignment="CENTER" prefHeight="130.0" styleClass="image-preview-frame">
+                                        <ImageView fx:id="siteBeforeImageView" fitWidth="190.0" fitHeight="120.0" preserveRatio="true" />
+                                    </StackPane>
+                                </VBox>
+                                <VBox spacing="4.0" HBox.hgrow="ALWAYS" alignment="CENTER" styleClass="metric-card">
+                                    <Label text="AFTER REPAIR PROOF" styleClass="metric-title" />
+                                    <StackPane alignment="CENTER" prefHeight="130.0" styleClass="image-preview-frame">
+                                        <ImageView fx:id="siteAfterImageView" fitWidth="190.0" fitHeight="120.0" preserveRatio="true" />
+                                    </StackPane>
+                                </VBox>
+                            </HBox>
+
+                            <!-- Material Procurement Section -->
+                            <Label text="Road Repair Materials Ordered:" styleClass="portal-label" />
+                            <HBox spacing="8.0">
+                                <TextField fx:id="siteMaterialField" promptText="e.g. 2.0 Ton Hot Mix Asphalt Grade-1" HBox.hgrow="ALWAYS" />
+                                <Button fx:id="siteAddMaterialBtn" text="Request" onAction="#onSiteAddMaterial" styleClass="action-button" />
+                            </HBox>
+                            <ListView fx:id="siteMaterialsList" prefHeight="65.0" />
+
+                            <Separator />
+
+                            <!-- Photo Attachment Paths -->
+                            <HBox spacing="8.0">
+                                <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                    <Label text="Before Photo Proof Path:" styleClass="portal-label" />
+                                    <HBox spacing="4.0">
+                                        <TextField fx:id="siteBeforeImgField" promptText="Path to before photo..." HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="siteBeforeBrowseBtn" text="..." onAction="#onSiteBrowseBefore" styleClass="action-button" />
+                                    </HBox>
+                                </VBox>
+                                <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                    <Label text="After Photo Proof Path:" styleClass="portal-label" />
+                                    <HBox spacing="4.0">
+                                        <TextField fx:id="siteAfterImgField" promptText="Path to after photo..." HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="siteAfterBrowseBtn" text="..." onAction="#onSiteBrowseAfter" styleClass="action-button" />
+                                    </HBox>
+                                </VBox>
+                            </HBox>
+
+                            <Button fx:id="siteCompleteWorkBtn" text="Submit Proofs &amp; Complete Work (COMPLETED)" onAction="#onSiteCompleteWork" maxWidth="Infinity" styleClass="success-button" />
+                        </VBox>
+                    </ScrollPane>
+                </SplitPane>
+            </Tab>
+
+            <!-- TAB 4: QUALITY AUDITOR PORTAL (Staff Protected) -->
+            <Tab fx:id="auditorTab" text="Quality Auditor Portal 🔒">
+                <VBox spacing="12.0" styleClass="portal-root">
+                    <!-- Top Metric Cards -->
+                    <HBox spacing="12.0">
+                        <VBox HBox.hgrow="ALWAYS" styleClass="metric-card">
+                            <Label text="Mean Time to Resolution (MTTR)" styleClass="metric-title" />
+                            <Label fx:id="auditorMttrLabel" text="0.0 hrs" styleClass="metric-number" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" styleClass="metric-card">
+                            <Label text="SLA Compliance Rate" styleClass="metric-title" />
+                            <Label fx:id="auditorSlaLabel" text="100.0%" styleClass="metric-number" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" styleClass="metric-card">
+                            <Label text="Contractor Free Repair Guarantees" styleClass="metric-title" />
+                            <Label fx:id="auditorDlpCountLabel" text="0 Cases" styleClass="metric-number" />
+                        </VBox>
+                        <VBox HBox.hgrow="ALWAYS" styleClass="metric-card">
+                            <Label text="Audit Sampling Ratio" styleClass="metric-title" />
+                            <Label fx:id="auditorSamplingRateLabel" text="30.0% (Configurable)" styleClass="metric-number" />
+                        </VBox>
+                    </HBox>
+
+                    <!-- SplitPane: Random Verification Table & Sign-off Panel -->
+                    <SplitPane orientation="HORIZONTAL" dividerPositions="0.45" VBox.vgrow="ALWAYS">
+                        <!-- Left: Random Sample Verification Table -->
+                        <VBox spacing="8.0" styleClass="portal-card">
+                            <Label text="Statistical Quality Audit Queue (Completed Work Orders)" styleClass="portal-card-header" />
+                            <TableView fx:id="auditorTable" VBox.vgrow="ALWAYS" styleClass="damage-table">
+                                <columns>
+                                    <TableColumn fx:id="auditorColId" text="Ticket ID" prefWidth="85.0" />
+                                    <TableColumn fx:id="auditorColContractor" text="Contractor" prefWidth="135.0" />
+                                    <TableColumn fx:id="auditorColSeverity" text="Severity" prefWidth="90.0" />
+                                    <TableColumn fx:id="auditorColAuditStatus" text="Audit Status" prefWidth="130.0" />
+                                </columns>
+                            </TableView>
+                        </VBox>
+
+                        <!-- Right: Digital Payment Sign-Off Panel with Side-by-Side Images -->
+                        <ScrollPane fitToWidth="true" styleClass="canvas-scroll-pane">
+                            <VBox spacing="10.0" styleClass="portal-card">
+                                <Label text="Quality Audit Verification &amp; Invoice Sign-Off" styleClass="portal-card-header" />
+                                <Label fx:id="auditorSelectedTicketLabel" text="Select a completed work order from the audit queue." wrapText="true" styleClass="portal-value-highlight" />
+
+                                <!-- SIDE-BY-SIDE BEFORE / AFTER IMAGES FOR AUDITOR -->
+                                <Label text="Submitted Photographic Proofs for Independent Verification:" styleClass="portal-label" />
+                                <HBox spacing="10.0" alignment="CENTER">
+                                    <VBox spacing="4.0" HBox.hgrow="ALWAYS" alignment="CENTER" styleClass="metric-card">
+                                        <Label text="BEFORE REPAIR EVIDENCE" styleClass="metric-title" />
+                                        <StackPane alignment="CENTER" prefHeight="130.0" styleClass="image-preview-frame">
+                                            <ImageView fx:id="auditorBeforeImageView" fitWidth="190.0" fitHeight="120.0" preserveRatio="true" />
+                                        </StackPane>
+                                        <Label fx:id="auditorBeforeProofLabel" text="samples/before.jpg" styleClass="portal-label" />
+                                    </VBox>
+                                    <VBox spacing="4.0" HBox.hgrow="ALWAYS" alignment="CENTER" styleClass="metric-card">
+                                        <Label text="AFTER REPAIR EVIDENCE" styleClass="metric-title" />
+                                        <StackPane alignment="CENTER" prefHeight="130.0" styleClass="image-preview-frame">
+                                            <ImageView fx:id="auditorAfterImageView" fitWidth="190.0" fitHeight="120.0" preserveRatio="true" />
+                                        </StackPane>
+                                        <Label fx:id="auditorAfterProofLabel" text="samples/after.jpg" styleClass="portal-label" />
+                                    </VBox>
+                                </HBox>
+
+                                <Label text="Road Repair Materials Ordered Audit Trail:" styleClass="portal-label" />
+                                <ListView fx:id="auditorMaterialsList" prefHeight="60.0" />
+
+                                <VBox spacing="4.0">
+                                    <Label text="Auditor Compaction Notes &amp; Justification:" styleClass="portal-label" />
+                                    <TextField fx:id="auditorNotesField" promptText="Enter compaction audit remarks or rejection rationale..." />
+                                </VBox>
+
+                                <HBox spacing="12.0">
+                                    <Button fx:id="auditorApproveBtn" text="Approve Work &amp; Release Payment" onAction="#onAuditorApprove" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="success-button" />
+                                    <Button fx:id="auditorRejectBtn" text="Reject Work (Require Rework)" onAction="#onAuditorReject" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="danger-button" />
+                                </HBox>
+                            </VBox>
+                        </ScrollPane>
+                    </SplitPane>
+                </VBox>
+            </Tab>
+
+            <!-- TAB 5: AI INSPECTION ENGINE (Staff Protected, Preserved from baseline) -->
+            <Tab fx:id="inspectionTab" text="Inspection Engine 🔒">
+                <BorderPane>
+                    <top>
+                        <ToolBar styleClass="main-toolbar">
+                            <Button fx:id="openButton" text="Open Media..." onAction="#onOpen" styleClass="action-button" />
+                            <Button fx:id="startButton" text="Start Inspection" onAction="#onStart" styleClass="primary-button" />
+                            <Button fx:id="stopButton" text="Stop Inspection" onAction="#onStop" styleClass="danger-button" />
+                            <Separator orientation="VERTICAL" />
+                            <Button fx:id="exportButton" text="Export CSV..." onAction="#onExport" styleClass="action-button" />
+                        </ToolBar>
+                    </top>
+
+                    <center>
+                        <SplitPane orientation="HORIZONTAL" dividerPositions="0.5" styleClass="canvas-split-pane">
+                            <VBox spacing="6.0" styleClass="canvas-container">
+                                <padding>
+                                    <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
+                                </padding>
+                                <Label text="Original Source Frame" styleClass="section-header" />
+                                <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" styleClass="canvas-scroll-pane">
+                                    <HBox alignment="CENTER" fillHeight="true">
+                                        <Canvas fx:id="originalView" width="600.0" height="400.0" />
+                                    </HBox>
+                                </ScrollPane>
+                            </VBox>
+
+                            <VBox spacing="6.0" styleClass="canvas-container">
+                                <padding>
+                                    <Insets top="8.0" right="8.0" bottom="8.0" left="8.0" />
+                                </padding>
+                                <Label text="Real-Time Detection &amp; Severity Overlays" styleClass="section-header" />
+                                <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS" styleClass="canvas-scroll-pane">
+                                    <HBox alignment="CENTER" fillHeight="true">
+                                        <AnnotatedCanvas fx:id="annotatedCanvas" width="600.0" height="400.0" />
+                                    </HBox>
+                                </ScrollPane>
+                            </VBox>
+                        </SplitPane>
+                    </center>
+
+                    <bottom>
+                        <TabPane prefHeight="230.0" tabClosingPolicy="UNAVAILABLE" styleClass="log-tab-pane">
+                            <Tab text="Damage Log">
+                                <TableView fx:id="logTable" styleClass="damage-table">
+                                    <columns>
+                                        <TableColumn fx:id="colFrame" text="Frame" prefWidth="70.0" />
+                                        <TableColumn fx:id="colTimestamp" text="Time (ms)" prefWidth="85.0" />
+                                        <TableColumn fx:id="colClass" text="Distress Taxonomy" prefWidth="140.0" />
+                                        <TableColumn fx:id="colConfidence" text="Confidence" prefWidth="90.0" />
+                                        <TableColumn fx:id="colScore" text="Priority Score" prefWidth="95.0" />
+                                        <TableColumn fx:id="colLevel" text="Severity Level" prefWidth="105.0" />
+                                        <TableColumn fx:id="colExplanation" text="Diagnostic Explanation" prefWidth="550.0" />
+                                    </columns>
+                                    <columnResizePolicy>
+                                        <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
+                                    </columnResizePolicy>
+                                </TableView>
+                            </Tab>
+
+                            <Tab text="Priority Alerts">
+                                <ListView fx:id="alertList" styleClass="alert-list-view" />
+                            </Tab>
+                        </TabPane>
+                    </bottom>
+                </BorderPane>
+            </Tab>
+
+        </TabPane>
+    </center>
+
+    <bottom>
+        <HBox spacing="12.0" alignment="CENTER_LEFT" styleClass="status-bar">
+            <padding>
+                <Insets top="6.0" right="12.0" bottom="6.0" left="12.0" />
+            </padding>
+            <Label fx:id="statusLabel" text="Ready" HBox.hgrow="ALWAYS" maxWidth="Infinity" styleClass="status-text" />
+            <ProgressBar fx:id="progress" prefWidth="240.0" progress="0.0" styleClass="status-progress-bar" />
+        </HBox>
+    </bottom>
+
+</BorderPane>

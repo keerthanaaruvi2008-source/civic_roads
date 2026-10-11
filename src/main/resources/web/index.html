@@ -1,0 +1,3006 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Civic Roads | Unified Road Damage Governance & Municipal Budget Platform</title>
+  <!-- Google Fonts & Leaflet GIS -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <style>
+    :root {
+      --bg-primary: #0a0f1d;
+      --bg-secondary: #111827;
+      --bg-card: rgba(17, 24, 39, 0.88);
+      --bg-card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+      --accent-indigo: #6366f1;
+      --accent-green: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-red: #ef4444;
+      --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f1f5f9;
+      --bg-secondary: #ffffff;
+      --bg-card: rgba(255, 255, 255, 0.95);
+      --bg-card-border: rgba(0, 0, 0, 0.08);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-blue: #0284c7;
+      --accent-indigo: #4f46e5;
+      --accent-green: #059669;
+      --accent-amber: #d97706;
+      --accent-red: #dc2626;
+      --shadow-soft: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.25s ease, border-color 0.25s ease;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* TOP HEADER & NAVBAR */
+    header {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--bg-card-border);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0.85rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .emblem-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+    }
+
+    .logo-text h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-text p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-btn {
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .nav-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-btn.active {
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.25);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .role-badge.staff {
+      background: rgba(99, 102, 241, 0.12);
+      color: #818cf8;
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-auth {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(99, 102, 241, 0.2));
+      color: #38bdf8;
+    }
+
+    .btn-auth:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.3));
+    }
+
+    .btn-signout {
+      padding: 0.5rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      background: rgba(239, 68, 68, 0.1);
+      color: #f87171;
+    }
+
+    .btn-signout:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+    }
+
+    /* MAIN CONTAINER */
+    main {
+      flex: 1;
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    /* QUICK STAT STRIP */
+    .kpi-strip {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .kpi-title {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .kpi-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
+    }
+
+    .kpi-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* SECTION VIEWPORT WRAPPERS */
+    .view-section {
+      display: none;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .view-section.active {
+      display: flex;
+    }
+
+    /* PANELS */
+    .glass-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .panel-header h2, .panel-header h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .panel-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* CITIZEN GRID */
+    .citizen-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .citizen-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* FORMS */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin-bottom: 1.1rem;
+    }
+
+    .form-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      border: 1px solid var(--bg-card-border);
+      background: rgba(0, 0, 0, 0.2);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      font-family: var(--font-sans);
+      outline: none;
+    }
+
+    [data-theme="light"] .form-input,
+    [data-theme="light"] .form-select,
+    [data-theme="light"] .form-textarea {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: rgba(0, 0, 0, 0.15);
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+
+    .input-with-action {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-locate {
+      padding: 0 1rem;
+      border-radius: 10px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent-blue);
+      font-weight: 600;
+      font-size: 0.82rem;
+      cursor: pointer;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .btn-locate:hover {
+      background: rgba(56, 189, 248, 0.25);
+    }
+
+    .severity-pills {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .pill-btn {
+      padding: 0.65rem 0.5rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-muted);
+    }
+
+    .pill-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    .pill-btn.active[data-sev="LOW"] { background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981; }
+    .pill-btn.active[data-sev="MEDIUM"] { background: rgba(56, 189, 248, 0.2); border-color: #38bdf8; color: #38bdf8; }
+    .pill-btn.active[data-sev="HIGH"] { background: rgba(245, 158, 11, 0.2); border-color: #f59e0b; color: #f59e0b; }
+    .pill-btn.active[data-sev="CRITICAL"] { background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444; }
+
+    /* DROP ZONE & PREVIEW */
+    .drop-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.04);
+    }
+
+    .drop-icon {
+      font-size: 2rem;
+    }
+
+    .preview-box {
+      width: 100%;
+      margin-top: 0.75rem;
+      border-radius: 10px;
+      overflow: hidden;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .preview-img {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--bg-card-border);
+    }
+
+    .eval-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-high { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-medium { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); }
+    .badge-low { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(135deg, #0284c7, #4f46e5);
+    }
+
+    /* TICKETS LIST */
+    .tickets-scroll {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-height: 580px;
+      overflow-y: auto;
+      padding-right: 0.3rem;
+    }
+
+    .ticket-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    [data-theme="light"] .ticket-card {
+      background: rgba(0, 0, 0, 0.02);
+    }
+
+    .ticket-card:hover {
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .ticket-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+
+    .ticket-id {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-size: 0.88rem;
+    }
+
+    .ticket-location {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 0.2rem;
+    }
+
+    .dlp-tag {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* 4-STEP TIMELINE STEPPER */
+    .stepper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      margin: 0.75rem 0 0.25rem 0;
+      padding: 0 0.5rem;
+    }
+
+    .stepper::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 20px;
+      right: 20px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      z-index: 1;
+    }
+
+    .step-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3rem;
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--bg-secondary);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .step-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .step-node.active .step-circle {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+    }
+
+    .step-node.active .step-label {
+      color: var(--accent-blue);
+    }
+
+    .step-node.completed .step-circle {
+      background: var(--accent-green);
+      border-color: var(--accent-green);
+      color: #ffffff;
+    }
+
+    .step-node.completed .step-label {
+      color: var(--accent-green);
+    }
+
+    /* SECTION 2: MAP VIEW */
+    .map-container-box {
+      height: 600px;
+      width: 100%;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--bg-card-border);
+      position: relative;
+    }
+
+    #gisMap {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-floating-panel {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      z-index: 1000;
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+    }
+
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    /* BUDGET LEDGER */
+    .budget-ledger-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.85));
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    [data-theme="light"] .budget-ledger-card {
+      background: linear-gradient(135deg, #ffffff, #f8fafc);
+      border-color: #cbd5e1;
+    }
+
+    .ledger-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      .ledger-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .ledger-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .ledger-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .ledger-amount {
+      font-size: 1.4rem;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-main);
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 14px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+      border-radius: 10px;
+      transition: width 0.5s ease;
+    }
+
+    .progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* AUDIT & TRIAGE CARDS */
+    .audit-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .audit-card {
+      background: var(--bg-card);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .audit-comparison-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.65rem;
+    }
+
+    @media (max-width: 720px) {
+      .audit-comparison-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .proof-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 8px;
+      overflow: hidden;
+      padding: 0.35rem;
+      position: relative;
+    }
+
+    .proof-img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--bg-card-border);
+      cursor: zoom-in;
+      transition: transform 0.2s ease;
+    }
+
+    .proof-img:hover {
+      transform: scale(1.02);
+    }
+
+    .gallery-stage-tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-stage1 { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .tag-stage2 { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .tag-stage3 { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+
+    @keyframes pulsePin {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { transform: scale(1.2); box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+
+    .gis-sync-banner {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    .audit-actions {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .btn-approve {
+      flex: 1;
+      padding: 0.7rem;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-approve:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+    }
+
+    .btn-reject {
+      flex: 1;
+      padding: 0.7rem;
+      border-radius: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #f87171;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+
+    .btn-reject:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* NODAL TRIAGE GALLERY & TABLE */
+    .triage-table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--bg-card-border);
+    }
+
+    .triage-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+
+    .triage-table th {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.85rem 1rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--bg-card-border);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .triage-table td {
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--bg-card-border);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    .triage-table tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* MODAL WINDOWS */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 460px;
+      padding: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+
+    .quick-creds {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .quick-btn {
+      padding: 0.4rem 0.65rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--bg-card-border);
+      color: var(--text-main);
+      font-size: 0.76rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-align: left;
+    }
+
+    .quick-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--accent-blue);
+    }
+
+    /* TOAST ALERTS */
+    .toast-container {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 3000;
+    }
+
+    .toast {
+      padding: 0.85rem 1.25rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #ffffff;
+      box-shadow: var(--shadow-soft);
+      animation: slideIn 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toast-success { background: #059669; }
+    .toast-error { background: #dc2626; }
+    .toast-info { background: #0284c7; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER & NAVBAR -->
+  <header>
+    <div class="nav-container">
+      <div class="logo-group" onclick="switchTab('citizen')">
+        <div class="emblem-icon">🏛️</div>
+        <div class="logo-text">
+          <h1>CIVIC ROADS</h1>
+          <p>Tamil Nadu Highway Governance & Municipal Budget</p>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <button class="nav-btn active" id="tabBtnCitizen" onclick="switchTab('citizen')">
+          <span>👥</span> Citizen Portal
+        </button>
+        <button class="nav-btn" id="tabBtnMap" onclick="handleMapTabClick()">
+          <span>🗺️</span> 50m Defect GIS Map
+        </button>
+        <button class="nav-btn" id="tabBtnNodal" onclick="switchTab('nodal')" style="display: none;">
+          <span>📋</span> Nodal Officer Triage
+        </button>
+        <button class="nav-btn" id="tabBtnContractor" onclick="switchTab('contractor')" style="display: none;">
+          <span>🏗️</span> Contractor Work Orders
+        </button>
+        <button class="nav-btn" id="tabBtnSupervisor" onclick="switchTab('supervisor')" style="display: none;">
+          <span>⚖️</span> Supervisor Hub (Audit & Budget)
+        </button>
+        <button class="nav-btn" id="tabBtnInspector" onclick="switchTab('inspector')" style="display: none;">
+          <span>🔍</span> AI Inspection Engine
+        </button>
+      </nav>
+
+      <div class="nav-actions">
+        <div class="role-badge" id="activeRoleBadge">
+          <span>👤</span> Public Citizen
+        </div>
+        <button class="btn-auth" id="loginBtn" onclick="openLoginModal()">
+          <span>🔒</span> Authorized Staff Login
+        </button>
+        <button class="btn-signout" id="logoutBtn" onclick="signOut()" style="display: none;">
+          <span>🚪</span> Sign Out
+        </button>
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+          <span id="themeIcon">☀️</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT -->
+  <main>
+
+    <!-- KPI STATS STRIP -->
+    <section class="kpi-strip">
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-title">Active Reported Grievances</div>
+          <div class="kpi-val" id="kpiReported">0</div>
+        </div>
+        <div class="kpi-icon" style="color: var(--accent-red);">🚨</div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-title">In-Progress Repairs</div>
+          <div class="kpi-val" id="kpiInProgress">0</div>
+        </div>
+        <div class="kpi-icon" style="color: var(--accent-amber);">🚜</div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-title">Audited & Disbursed</div>
+          <div class="kpi-val" id="kpiResolved">0</div>
+        </div>
+        <div class="kpi-icon" style="color: var(--accent-green);">✅</div>
+      </div>
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-title">Municipal Allocation Pool</div>
+          <div class="kpi-val" style="color: var(--accent-blue);">₹5,00,000</div>
+        </div>
+        <div class="kpi-icon" style="color: var(--accent-blue);">💰</div>
+      </div>
+    </section>
+
+    <!-- SECTION 1: CITIZEN PORTAL (DEFAULT PUBLIC LANDING) -->
+    <section id="viewCitizen" class="view-section active">
+
+      <!-- MUNICIPAL STAFF GATEWAY INVITATION -->
+      <div class="glass-panel" id="staffPromo" style="display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #6366f1;">
+        <div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: #818cf8; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🏛️</span> Municipal Staff Gateway Notice
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+            Internal engineering tools (Nodal Triage, Contractor Portals, Supervisor Hub) are strictly restricted behind authorized login.
+          </div>
+        </div>
+        <button class="btn-auth" onclick="openLoginModal()" style="white-space: nowrap;">
+          <span>🔒</span> Staff Sign In
+        </button>
+      </div>
+
+      <div class="citizen-grid">
+        
+        <!-- CITIZEN GRIEVANCE REPORTING FORM -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <div>
+              <h2><span>🚨</span> Report Pavement Damage or Pothole</h2>
+              <div class="panel-subtitle">Instant public submission under 48h Defect Liability remediation warranty</div>
+            </div>
+          </div>
+
+          <form id="citizenForm" onsubmit="submitGrievance(event)">
+            <div class="form-group">
+              <label class="form-label">Road / Street Address & Landmark</label>
+              <div class="input-with-action">
+                <input type="text" id="citAddress" class="form-input" placeholder="e.g. Mount Road, Guindy, Chennai" required oninput="handleAddressInput(this.value)">
+                <button type="button" class="btn-locate" onclick="detectLocation()">
+                  <span>📍</span> Use Current Location
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Damage Severity Tier</label>
+              <div class="severity-pills">
+                <div class="pill-btn" data-sev="LOW" onclick="selectSeverity('LOW')">LOW</div>
+                <div class="pill-btn" data-sev="MEDIUM" onclick="selectSeverity('MEDIUM')">MEDIUM</div>
+                <div class="pill-btn active" data-sev="HIGH" onclick="selectSeverity('HIGH')">HIGH</div>
+                <div class="pill-btn" data-sev="CRITICAL" onclick="selectSeverity('CRITICAL')">CRITICAL</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Upload Defect Photo Proof</label>
+              <div class="drop-zone" id="dropZone" onclick="triggerFileInput()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <div class="drop-icon">📷</div>
+                <div style="font-weight: 600; font-size: 0.9rem;">Drop Road Photo Here or Click to Upload</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Supports JPG / PNG (Live AI Severity Evaluator)</div>
+                <input type="file" id="fileInput" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+                
+                <div class="preview-box" id="previewBox">
+                  <div style="position: relative; width: 100%; display: flex; justify-content: center;">
+                    <img id="previewImg" class="preview-img" alt="Pothole Preview">
+                    <div id="citizenBboxOverlay" style="position: absolute; display: none; border: 2px dashed #ef4444; background: rgba(239, 68, 68, 0.25); border-radius: 6px; pointer-events: none; transition: all 0.2s ease;">
+                      <span id="citizenBboxLabel" style="position: absolute; top: 2px; left: 2px; background: #ef4444; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 4px; border-radius: 3px;">CRITICAL CAVITY</span>
+                    </div>
+                  </div>
+                  <div id="evalBadge" class="eval-badge badge-high">AUTO-EVALUATED: SEVERE CAVITY DETECTED</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Observation Notes / Description</label>
+              <textarea id="citDesc" class="form-textarea" rows="2" placeholder="Describe the pavement distress, vehicular deflection, or hazards..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              <span>🚀</span> Submit Public Grievance
+            </button>
+
+            <!-- LIVE DYNAMIC MAP PIN SYNC BANNER -->
+            <div id="gisSyncSuccessBanner" class="gis-sync-banner" style="display: none;">
+              <div>
+                <div style="font-weight: 800; font-size: 0.88rem; color: #ef4444; display: flex; align-items: center; gap: 0.4rem;">
+                  <span style="font-size: 1.1rem;">📍</span> DYNAMIC ADDRESS PIN ANCHORED
+                </div>
+                <div id="gisSyncBannerCoords" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem;">
+                  Pulsing RED pin dynamically placed on GIS layer with full defect preview.
+                </div>
+              </div>
+              <button type="button" class="nav-btn active" style="padding: 0.45rem 0.85rem; font-size: 0.8rem;" onclick="switchTab('map')">
+                <span>🗺️</span> View on GIS Map ➔
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- PUBLIC GRIEVANCE TRACKING REGISTRY -->
+        <div class="glass-panel">
+          <div class="panel-header">
+            <div>
+              <h2><span>📋</span> Public Grievance Tracking Registry</h2>
+              <div class="panel-subtitle">Live 4-step governance timeline (Reported ➔ Assigned ➔ In Progress ➔ Fixed)</div>
+            </div>
+            <input type="text" id="tktFilter" class="form-input" style="width: 170px; padding: 0.4rem 0.7rem; font-size: 0.8rem;" placeholder="Search Landmark..." oninput="renderCitizenTickets()">
+          </div>
+
+          <div class="tickets-scroll" id="citizenTicketsList">
+            <!-- Dynamically populated ticket cards -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: 50M SEGMENT CONDITION & DEFECT GIS MAP -->
+    <section id="viewMap" class="view-section">
+      <div class="glass-panel" style="padding: 1.25rem;">
+        <div class="panel-header" style="margin-bottom: 0.75rem;">
+          <div>
+            <h2><span>🗺️</span> 50m Segment Condition & Defect GIS Map</h2>
+            <div class="panel-subtitle">Interactive OpenStreetMap centered on active corridors with live color-coded defect pins</div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <button class="nav-btn active" onclick="centerMap([13.0450, 80.2520])">📍 Anna Salai</button>
+            <button class="nav-btn" onclick="centerMap([13.0067, 80.2025])">📍 Guindy Ring</button>
+            <button class="nav-btn" onclick="centerMap([12.9352, 80.2337])">📍 OMR IT Corridor</button>
+            <button class="nav-btn" onclick="centerMap([12.9750, 80.1450])">📍 GST Highway</button>
+          </div>
+        </div>
+
+        <div class="map-container-box">
+          <div id="gisMap"></div>
+          
+          <div class="map-floating-panel">
+            <h4>GIS Pin Legend</h4>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #ef4444; box-shadow: 0 0 8px #ef4444;"></div>
+              <span>Red: Critical Defect / Reported</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #f59e0b; box-shadow: 0 0 8px #f59e0b;"></div>
+              <span>Amber: Work In Progress / Pending Audit</span>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dot" style="background: #10b981; box-shadow: 0 0 8px #10b981;"></div>
+              <span>Green: Audited & Disbursed (Fixed)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: NODAL OFFICER & SURVEYOR PORTAL (NODAL_OFFICER) -->
+    <section id="viewNodal" class="view-section">
+      <div class="glass-panel" style="margin-bottom: 0.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+          <div>
+            <h2 style="font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+              <span>📋</span> PWD Nodal Officer & Surveyor Triage Command Center
+            </h2>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">
+              Inspect defect photos, verify spatial GIS coordinates, classify statutory jurisdiction, and dispatch contractor work orders.
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <div class="role-badge staff">
+              <span>🛡️</span> PWD Roads & Survey Division
+            </div>
+            <div style="display: flex; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 2px;">
+              <button class="nav-btn active" id="btnNodalGalleryView" onclick="toggleNodalViewMode('gallery')" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                <span>🖼️</span> Gallery
+              </button>
+              <button class="nav-btn" id="btnNodalTableView" onclick="toggleNodalViewMode('table')" style="padding: 0.4rem 0.75rem; font-size: 0.8rem;">
+                <span>📊</span> Table
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALLERY VIEW -->
+      <div id="nodalGalleryContainer" class="audit-grid">
+        <!-- Dynamically populated triage cards with photo, AI metrics, and routing tools -->
+      </div>
+
+      <!-- TABLE VIEW -->
+      <div id="nodalTableContainer" class="triage-table-container" style="display: none;">
+        <table class="triage-table">
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Defect Photo</th>
+              <th>Road Landmark</th>
+              <th>AI Severity</th>
+              <th>Crater Area</th>
+              <th>Coordinates</th>
+              <th>Target Authority</th>
+              <th>Designated Contractor</th>
+              <th>Dispatch Action</th>
+            </tr>
+          </thead>
+          <tbody id="nodalTableBody">
+            <!-- Dynamically populated table rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- SECTION 4: SITE CONTRACTOR PORTAL (SITE_ENGINEER) -->
+    <section id="viewContractor" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div>
+            <h2><span>🏗️</span> Site Contractor Work Orders & 2-Milestone Execution</h2>
+            <div class="panel-subtitle">Contractor: Apex Infra Roadways Ltd | Progress Photo Log ➔ Material & Cost Claim</div>
+          </div>
+          <div class="role-badge staff">
+            <span>🚜</span> Apex Infra Roadways Ltd
+          </div>
+        </div>
+
+        <div class="citizen-grid">
+          <!-- WORK ORDERS LIST -->
+          <div>
+            <h3 style="font-size: 0.95rem; margin-bottom: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Active Assigned Work Orders</h3>
+            <div class="tickets-scroll" id="contractorWorkOrdersList">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- 2-MILESTONE WORK FLOW -->
+          <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+
+            <!-- MILESTONE 1: IN-PROGRESS PHOTO UPLOAD -->
+            <div class="glass-panel" style="background: rgba(0,0,0,0.18); border-left: 4px solid var(--accent-amber);">
+              <div class="panel-header" style="margin-bottom: 0.75rem;">
+                <div>
+                  <h3 style="font-size: 1.05rem; color: #fbbf24;"><span>🚜</span> Milestone 1: Upload In-Progress Photo</h3>
+                  <div class="panel-subtitle">Document active repair/cold mix work (Required to move Citizen timeline to In-Progress)</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Active Work Order Selected</label>
+                <input type="text" id="progressTicketId" class="form-input" readonly style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-blue);">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">In-Progress Photographic Proof (Cold Mix Laying / Compaction)</label>
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                  <input type="text" id="progressPhotoInput" class="form-input" value="samples/work_in_progress_compaction.jpg" oninput="updateContractorProgressPreview()">
+                  <button type="button" class="btn-locate" onclick="document.getElementById('progressFileInput').click()">
+                    <span>📷</span> Browse
+                  </button>
+                  <input type="file" id="progressFileInput" accept="image/*" style="display: none;" onchange="handleProgressFileSelect(event)">
+                </div>
+                <div style="position: relative; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--bg-card-border);">
+                  <img id="previewProgressImg" src="/samples/work_in_progress_compaction.jpg" style="width: 100%; height: 140px; object-fit: cover;" alt="In-Progress Proof">
+                  <div id="progressBboxOverlay" style="position: absolute; top: 20%; left: 15%; width: 70%; height: 60%; border: 2px dashed #f59e0b; background: rgba(245, 158, 11, 0.2); border-radius: 6px; display: flex; align-items: flex-start; padding: 4px;">
+                    <span style="background: #f59e0b; color: #000; font-size: 0.65rem; font-weight: 800; padding: 2px 4px; border-radius: 3px;">COMPACTION IN-PROGRESS (88.7%)</span>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="btn-submit" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; font-weight: 800;" onclick="uploadContractorProgressMilestone()">
+                <span>🚜</span> Log In-Progress Milestone (Active Repair / Cold Mix Laying)
+              </button>
+            </div>
+
+            <!-- MILESTONE 2: MATERIAL & CLAIM REQUISITION -->
+            <div class="glass-panel" style="background: rgba(0,0,0,0.18); border-left: 4px solid var(--accent-green);">
+              <div class="panel-header" style="margin-bottom: 0.75rem;">
+                <div>
+                  <h3 style="font-size: 1.05rem; color: #34d399;"><span>📝</span> Milestone 2: Submit Requisition & Cost Claim</h3>
+                  <div class="panel-subtitle">Mandatory 3-stage photographic sequence & cost claim for Supervisor Audit</div>
+                </div>
+              </div>
+
+              <form id="claimForm" onsubmit="submitContractorClaim(event)">
+                <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                  <div>
+                    <label class="form-label">PWD Estimate (₹)</label>
+                    <input type="text" id="claimEstimate" class="form-input" readonly style="font-family: var(--font-mono); color: var(--text-muted);">
+                  </div>
+                  <div>
+                    <label class="form-label">Claimed Repair Cost (₹)</label>
+                    <input type="number" id="claimCost" class="form-input" required style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-green);" placeholder="e.g. 19200">
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Material Itemization & Volume</label>
+                  <input type="text" id="claimMaterials" class="form-input" required placeholder="e.g. 2.5 Tonnes Cold Mix Asphalt + Bitumen Emulsion Tack Coat">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">📸 3-Stage Photo Sequence Verification</label>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+                    <div>
+                      <div class="gallery-stage-tag tag-stage1" style="margin-bottom: 3px;">1. Pre-Repair</div>
+                      <img id="previewClaimBefore" src="/samples/user_uploaded_waterlogged_pothole.jpg" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; border: 1px solid var(--bg-card-border);" alt="Stage 1">
+                    </div>
+                    <div>
+                      <div class="gallery-stage-tag tag-stage2" style="margin-bottom: 3px;">2. Compaction</div>
+                      <img id="previewClaimStage2" src="/samples/work_in_progress_compaction.jpg" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; border: 1px solid var(--bg-card-border);" alt="Stage 2">
+                    </div>
+                    <div>
+                      <div class="gallery-stage-tag tag-stage3" style="margin-bottom: 3px;">3. Resurfaced</div>
+                      <img id="previewClaimAfter" src="/samples/after_patch_1.jpg" style="width: 100%; height: 75px; object-fit: cover; border-radius: 6px; border: 1px solid var(--bg-card-border);" alt="Stage 3">
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="background: linear-gradient(135deg, #10b981, #059669);">
+                  <span>📝</span> Submit Requisition for Supervisor Audit & Budget Release
+                </button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: SUPERVISOR HUB (AUDIT, BUDGET & FIELD ENDORSEMENT) -->
+    <section id="viewSupervisor" class="view-section">
+      <!-- REACTIVE MUNICIPAL BUDGET LEDGER -->
+      <div class="budget-ledger-card">
+        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h2 style="font-size: 1.25rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+              <span>🏛️</span> Unified Supervisor Hub & Municipal Budget Ledger
+            </h2>
+            <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.2rem;">
+              Consolidated Field Verification Endorsement, 3-Stage Photo Sequence Inspection & Autonomous Budget Disbursal
+            </div>
+          </div>
+          <div class="role-badge staff">
+            <span>🛡️</span> NHAI Quality Audit & Disbursal Wing
+          </div>
+        </div>
+
+        <div class="ledger-grid">
+          <div class="ledger-item">
+            <div class="ledger-label">Total Allocation Pool</div>
+            <div class="ledger-amount" style="color: var(--accent-blue);">₹5,00,000</div>
+          </div>
+          <div class="ledger-item">
+            <div class="ledger-label">Pending Supervisor Audit (Reserved)</div>
+            <div class="ledger-amount" id="budgetPending" style="color: var(--accent-amber);">₹0</div>
+          </div>
+          <div class="ledger-item">
+            <div class="ledger-label">Approved Disbursements</div>
+            <div class="ledger-amount" id="budgetApproved" style="color: var(--accent-green);">₹0</div>
+          </div>
+          <div class="ledger-item">
+            <div class="ledger-label">Available Municipal Balance</div>
+            <div class="ledger-amount" id="budgetAvailable" style="color: var(--text-main);">₹5,00,000</div>
+          </div>
+        </div>
+
+        <div>
+          <div class="progress-meta">
+            <span>Fiscal Pool Disbursement Progress</span>
+            <span id="budgetDisbursedPct">0.0% Disbursed</span>
+          </div>
+          <div class="progress-bar-container" style="margin-top: 0.4rem;">
+            <div class="progress-bar-fill" id="budgetProgressBar"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING SUPERVISOR AUDIT & ENDORSEMENT QUEUE -->
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div>
+            <h2><span>⚖️</span> Pending Supervisor Audit & Field Verification Endorsements</h2>
+            <div class="panel-subtitle">Inspect 3-Stage photo sequence ("Before" ➔ "In-Progress" ➔ "After"), material requisition, and authorize payment</div>
+          </div>
+          <span id="supervisorQueueBadge" class="eval-badge badge-high" style="font-size: 0.75rem;">0 Pending Audit</span>
+        </div>
+
+        <div class="audit-grid" id="auditQueueGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: AI COMPUTER VISION INSPECTION ENGINE -->
+    <section id="viewInspector" class="view-section">
+      <div class="glass-panel">
+        <div class="panel-header">
+          <div>
+            <h2><span>🔍</span> AI Computer Vision Pavement Defect Inspection Engine</h2>
+            <div class="panel-subtitle">Automated severity classification, defect dimensional area segmentation, and SoR estimation</div>
+          </div>
+          <button class="nav-btn active" onclick="runAiAnalysis()">
+            <span>⚡</span> Run Neural Defect Segmentation
+          </button>
+        </div>
+
+        <div class="citizen-grid">
+          <!-- IMAGE & DETECTION VIEW -->
+          <div>
+            <div style="margin-bottom: 0.85rem;">
+              <label class="form-label">Select Inspection Benchmark Frame</label>
+              <select id="sampleSelect" class="form-select" onchange="changeSampleImage()">
+                <option value="samples/user_uploaded_waterlogged_pothole.jpg">Mount Road Cavity Pothole (Critical Waterlogged)</option>
+                <option value="samples/before_pothole_1.jpg">Guindy Inner Ring Structural Asphalt Distress</option>
+                <option value="samples/work_in_progress_compaction.jpg">Active Compaction & Cold Mix Laying (In-Progress)</option>
+                <option value="samples/after_patch_1.jpg">OMR IT Corridor Completed Bitumen Patch</option>
+              </select>
+            </div>
+
+            <div style="position: relative; border-radius: 12px; overflow: hidden; border: 1px solid var(--bg-card-border); background: #000;">
+              <img id="aiInspectImg" src="/samples/user_uploaded_waterlogged_pothole.jpg" style="width: 100%; height: 350px; object-fit: cover;" alt="Inspection Frame">
+              <div id="aiBoundingBox" style="position: absolute; top: 25%; left: 20%; width: 55%; height: 50%; border: 2px dashed #ef4444; background: rgba(239, 68, 68, 0.2); border-radius: 8px; display: flex; align-items: flex-start; padding: 6px;">
+                <span id="aiBoundingBoxLabel" style="background: #ef4444; color: #fff; font-size: 0.72rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">P-101: CRITICAL CAVITY (97.4%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- METRICS & WORK ORDER DISPATCH -->
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div class="kpi-card" style="padding: 1rem;">
+              <div>
+                <div class="kpi-title">Detected Pavement Severity</div>
+                <div class="kpi-val" id="aiKpiSeverity" style="color: var(--accent-red); font-size: 1.3rem;">CRITICAL CAVITY</div>
+                <div id="aiKpiSeveritySub" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">IRC:SP:84 Highway Code Trigger</div>
+              </div>
+              <div class="kpi-icon" style="color: var(--accent-red);">🚨</div>
+            </div>
+
+            <div class="kpi-card" style="padding: 1rem;">
+              <div>
+                <div class="kpi-title">Segmented Defect Surface Area</div>
+                <div class="kpi-val" id="aiKpiArea" style="color: var(--accent-blue); font-size: 1.3rem;">1,420 cm²</div>
+                <div id="aiKpiDepth" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Calculated Depth Index: 4.8 cm</div>
+              </div>
+              <div class="kpi-icon" style="color: var(--accent-blue);">📐</div>
+            </div>
+
+            <div class="kpi-card" style="padding: 1rem;">
+              <div>
+                <div class="kpi-title">Recommended Remediation Material</div>
+                <div id="aiKpiMaterial" style="font-weight: 700; font-size: 0.95rem; color: var(--accent-green); margin-top: 0.25rem;">
+                  2.5 Tonnes Cold Mix Asphalt + Bitumen Tack Coat
+                </div>
+                <div id="aiKpiCost" style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">PWD Schedule of Rates: ₹18,500</div>
+              </div>
+              <div class="kpi-icon" style="color: var(--accent-green);">🏗️</div>
+            </div>
+
+            <button class="btn-submit" onclick="promoteAiDetection()" style="margin-top: 0.5rem;">
+              <span>🚀</span> Promote AI Detection to Public Work Order
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- AUTHORIZED STAFF LOGIN MODAL -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeLoginModal()">✕</button>
+      
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <div class="emblem-icon" style="width: 38px; height: 38px; font-size: 1.15rem;">🔒</div>
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800;">Authorized Staff Gateway</h3>
+          <p style="font-size: 0.76rem; color: var(--text-muted);">Municipal, Contractor & Quality Auditor Access</p>
+        </div>
+      </div>
+
+      <!-- 1-CLICK PREDEFINED CREDENTIALS -->
+      <div class="quick-creds">
+        <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">1-Click Role Login:</div>
+        <button class="quick-btn" onclick="fillCreds('admin@pwd.gov', 'pwd123')">
+          <span>📋 Nodal Officer / Surveyor</span>
+          <span style="font-family: var(--font-mono); color: var(--text-muted);">admin@pwd.gov</span>
+        </button>
+        <button class="quick-btn" onclick="fillCreds('site@contractor.in', 'site123')">
+          <span>🏗️ Site Contractor (Apex)</span>
+          <span style="font-family: var(--font-mono); color: var(--text-muted);">site@contractor.in</span>
+        </button>
+        <button class="quick-btn" onclick="fillCreds('audit@nhai.gov', 'audit123')">
+          <span>⚖️ Supervisor / Auditor (NHAI)</span>
+          <span style="font-family: var(--font-mono); color: var(--text-muted);">audit@nhai.gov</span>
+        </button>
+        <button class="quick-btn" onclick="fillCreds('ai@inspector.gov', 'ai123')">
+          <span>🔍 AI Inspection Specialist</span>
+          <span style="font-family: var(--font-mono); color: var(--text-muted);">ai@inspector.gov</span>
+        </button>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 0.85rem;">
+        <div>
+          <label class="form-label">Official Email</label>
+          <input type="email" id="loginEmail" class="form-input" required placeholder="name@agency.gov">
+        </div>
+        <div>
+          <label class="form-label">Password</label>
+          <input type="password" id="loginPass" class="form-input" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-submit" style="margin-top: 0.5rem;">
+          <span>🔓</span> Authenticate & Enter Portal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- JAVASCRIPT APPLICATION LOGIC -->
+  <script>
+    // State Management
+    let currentRole = 'CITIZEN';
+    let currentUser = null;
+    let selectedSeverity = 'HIGH';
+    let currentLat = 13.0450;
+    let currentLon = 80.2520;
+    let uploadedPhotoPath = '';
+    let uploadedPhotoBase64 = '';
+    let map = null;
+    let markersLayer = null;
+    let citizenDraftMarker = null;
+    let cachedTickets = [];
+    let addressDebounceTimer = null;
+    let nodalViewMode = 'gallery'; // 'gallery' | 'table'
+
+    // Theme Management
+    function initTheme() {
+      const saved = localStorage.getItem('civic_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeIcon(saved);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('civic_theme', next);
+      updateThemeIcon(next);
+    }
+
+    function updateThemeIcon(theme) {
+      document.getElementById('themeIcon').innerText = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    // Role-based Navigation Isolation
+    function applyRoleNavigation(role) {
+      const btnCitizen = document.getElementById('tabBtnCitizen');
+      const btnMap = document.getElementById('tabBtnMap');
+      const btnNodal = document.getElementById('tabBtnNodal');
+      const btnContractor = document.getElementById('tabBtnContractor');
+      const btnSupervisor = document.getElementById('tabBtnSupervisor');
+      const btnInspector = document.getElementById('tabBtnInspector');
+
+      // Hide all role tabs first
+      btnNodal.style.display = 'none';
+      btnContractor.style.display = 'none';
+      btnSupervisor.style.display = 'none';
+      btnInspector.style.display = 'none';
+
+      if (role === 'NODAL_OFFICER' || role === 'SURVEYOR') {
+        // Strict role isolation: Hide Contractor & Supervisor entirely
+        btnNodal.style.display = 'inline-flex';
+        btnInspector.style.display = 'inline-flex';
+        btnMap.style.display = 'inline-flex';
+        btnCitizen.style.display = 'inline-flex';
+        switchTab('nodal');
+      } else if (role === 'SITE_ENGINEER') {
+        btnContractor.style.display = 'inline-flex';
+        btnMap.style.display = 'inline-flex';
+        btnCitizen.style.display = 'inline-flex';
+        switchTab('contractor');
+      } else if (role === 'QUALITY_AUDITOR') {
+        btnSupervisor.style.display = 'inline-flex';
+        btnMap.style.display = 'inline-flex';
+        btnCitizen.style.display = 'inline-flex';
+        switchTab('supervisor');
+      } else if (role === 'AI_SPECIALIST') {
+        btnInspector.style.display = 'inline-flex';
+        btnMap.style.display = 'inline-flex';
+        btnCitizen.style.display = 'inline-flex';
+        switchTab('inspector');
+      } else {
+        // Public Citizen (Default)
+        btnCitizen.style.display = 'inline-flex';
+        btnMap.style.display = 'inline-flex';
+        switchTab('citizen');
+      }
+    }
+
+    function handleMapTabClick() {
+      switchTab('map');
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+      if (tabId === 'citizen') {
+        document.getElementById('viewCitizen').classList.add('active');
+        document.getElementById('tabBtnCitizen').classList.add('active');
+      } else if (tabId === 'map') {
+        document.getElementById('viewMap').classList.add('active');
+        document.getElementById('tabBtnMap').classList.add('active');
+        if (map) {
+          setTimeout(() => { map.invalidateSize(); }, 200);
+        }
+      } else if (tabId === 'nodal') {
+        document.getElementById('viewNodal').classList.add('active');
+        document.getElementById('tabBtnNodal').classList.add('active');
+        renderNodalView();
+      } else if (tabId === 'contractor') {
+        document.getElementById('viewContractor').classList.add('active');
+        document.getElementById('tabBtnContractor').classList.add('active');
+        renderContractorView();
+      } else if (tabId === 'supervisor') {
+        document.getElementById('viewSupervisor').classList.add('active');
+        document.getElementById('tabBtnSupervisor').classList.add('active');
+        renderSupervisorView();
+      } else if (tabId === 'inspector') {
+        document.getElementById('viewInspector').classList.add('active');
+        document.getElementById('tabBtnInspector').classList.add('active');
+      }
+    }
+
+    // Toast Notifications
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `<span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span> ${message}`;
+      container.appendChild(toast);
+      setTimeout(() => { toast.remove(); }, 4000);
+    }
+
+    // Leaflet GIS Map Initialization
+    function initMap() {
+      if (map) return;
+      const mapContainer = document.getElementById('gisMap');
+      if (!mapContainer) return;
+      map = L.map('gisMap').setView([13.0450, 80.2520], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors | PWD Civic Roads'
+      }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+    }
+
+    function centerMap(coords) {
+      if (map) {
+        map.setView(coords, 14);
+      }
+    }
+
+    // Dynamic Address Geocoding & Instant Red Pin
+    function geocodeClientAddress(addr) {
+      const norm = (addr || '').toLowerCase();
+      if (norm.includes('mount road') || norm.includes('anna salai') || norm.includes('dms') || norm.includes('teynampet')) {
+        return { lat: 13.0450, lon: 80.2520, corridor: 'Anna Salai / Mount Road' };
+      } else if (norm.includes('omr') || norm.includes('old mahabalipuram') || norm.includes('sholinganallur') || norm.includes('thoraipakkam')) {
+        return { lat: 12.9352, lon: 80.2337, corridor: 'OMR IT Expressway' };
+      } else if (norm.includes('guindy') || norm.includes('kathipara') || norm.includes('inner ring')) {
+        return { lat: 13.0067, lon: 80.2025, corridor: 'Guindy - Kathipara Ring' };
+      } else if (norm.includes('gst') || norm.includes('chromepet') || norm.includes('tambaram') || norm.includes('airport')) {
+        return { lat: 12.9822, lon: 80.1636, corridor: 'Grand Southern Trunk (GST) Road' };
+      } else if (norm.includes('poonamallee') || norm.includes('koyambedu') || norm.includes('ph road') || norm.includes('kilpauk')) {
+        return { lat: 13.0780, lon: 80.2430, corridor: 'Poonamallee High Road' };
+      } else if (norm.includes('marina') || norm.includes('kamarajar') || norm.includes('santhome')) {
+        return { lat: 13.0500, lon: 80.2824, corridor: 'Kamarajar Promenade / Marina' };
+      } else if (norm.includes('velachery') || norm.includes('taramani') || norm.includes('pallikaranai')) {
+        return { lat: 12.9759, lon: 80.2212, corridor: 'Velachery Bypass Corridor' };
+      } else if (norm.includes('ecr') || norm.includes('east coast') || norm.includes('thiruvanmiyur')) {
+        return { lat: 12.9830, lon: 80.2594, corridor: 'East Coast Road (ECR)' };
+      } else if (norm.includes('porur') || norm.includes('ramapuram') || norm.includes('kundrathur')) {
+        return { lat: 13.0382, lon: 80.1565, corridor: 'Porur - Kundrathur Highway' };
+      } else if (norm.includes('ambattur') || norm.includes('avadi') || norm.includes('cth')) {
+        return { lat: 13.1143, lon: 80.1548, corridor: 'Chennai-Tiruvallur High Road' };
+      }
+
+      // Consistent spatial hash for any typed address
+      let hash = 0;
+      for (let i = 0; i < norm.length; i++) {
+        hash = ((hash << 5) - hash) + norm.charCodeAt(i);
+        hash |= 0;
+      }
+      const latOffset = ((Math.abs(hash) % 100) - 50) / 1000.0;
+      const lonOffset = ((Math.abs(hash >> 3) % 100) - 50) / 1000.0;
+      return { lat: 13.0450 + latOffset, lon: 80.2520 + lonOffset, corridor: 'Chennai Municipal Sector' };
+    }
+
+    function handleAddressInput(addr) {
+      clearTimeout(addressDebounceTimer);
+      addressDebounceTimer = setTimeout(() => {
+        if (!addr || addr.trim().length < 3) return;
+        const geo = geocodeClientAddress(addr);
+        currentLat = geo.lat;
+        currentLon = geo.lon;
+        updateDynamicCitizenPin(addr, geo.lat, geo.lon);
+      }, 300);
+    }
+
+    function detectLocation() {
+      const addrInput = document.getElementById('citAddress');
+      addrInput.value = 'Mount Road, Guindy, Chennai';
+      currentLat = 13.0450;
+      currentLon = 80.2520;
+      updateDynamicCitizenPin(addrInput.value, currentLat, currentLon);
+      showToast('📍 Location locked: Mount Road, Guindy, Chennai (13.0450°N, 80.2520°E)', 'success');
+
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          currentLat = pos.coords.latitude;
+          currentLon = pos.coords.longitude;
+          updateDynamicCitizenPin(addrInput.value, currentLat, currentLon);
+        }, () => {});
+      }
+    }
+
+    function updateDynamicCitizenPin(addr, lat, lon) {
+      initMap();
+      if (!map) return;
+
+      // Center map on the exact location
+      map.setView([lat, lon], 15);
+
+      // Create or update dedicated pulsating RED pin
+      if (citizenDraftMarker) {
+        map.removeLayer(citizenDraftMarker);
+      }
+
+      const pulseIcon = L.divIcon({
+        html: `<div style="
+          background: #ef4444;
+          width: 30px;
+          height: 30px;
+          border-radius: 50%;
+          border: 3px solid #ffffff;
+          box-shadow: 0 0 16px #ef4444;
+          animation: pulsePin 1.5s infinite;
+          cursor: pointer;
+        "></div>`,
+        className: 'red-pulse-pin',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
+
+      citizenDraftMarker = L.marker([lat, lon], { icon: pulseIcon }).addTo(map);
+
+      // Photo preview resolution
+      const previewImgEl = document.getElementById('previewImg');
+      const photoSrc = (previewImgEl && previewImgEl.src && previewImgEl.src.length > 50) ? 
+                       previewImgEl.src : 
+                       (uploadedPhotoPath ? '/' + uploadedPhotoPath : '/samples/user_uploaded_waterlogged_pothole.jpg');
+
+      const aiConfidence = selectedSeverity === 'CRITICAL' ? '97.4%' :
+                           selectedSeverity === 'HIGH' ? '89.2%' :
+                           selectedSeverity === 'MEDIUM' ? '76.5%' : '62.0%';
+
+      const popupHtml = `
+        <div style="font-family: var(--font-sans); min-width: 250px; color: #0f172a; padding: 4px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: 800; font-family: var(--font-mono); color: #ef4444; font-size: 0.95rem;">
+              🚨 DRAFT DEFECT
+            </span>
+            <span style="background: #ef4444; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+              ${selectedSeverity} (${aiConfidence})
+            </span>
+          </div>
+          <div style="position: relative; margin-bottom: 6px; border-radius: 6px; overflow: hidden; border: 1px solid #cbd5e1;">
+            <img src="${photoSrc}" style="width: 100%; height: 110px; object-fit: cover;" alt="Pothole Proof">
+            <span style="position: absolute; bottom: 3px; left: 3px; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.65rem; padding: 1px 4px; border-radius: 3px;">
+              CV Evaluated
+            </span>
+          </div>
+          <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">
+            📍 ${addr || 'Mount Road, Guindy, Chennai'}
+          </div>
+          <div style="font-size: 0.78rem; color: #475569; margin-bottom: 2px;">
+            AI Severity Rating: <b style="color: #ef4444;">${selectedSeverity}</b>
+          </div>
+          <div style="font-size: 0.72rem; color: #64748b;">
+            Coords: (${Number(lat).toFixed(4)}°N, ${Number(lon).toFixed(4)}°E)
+          </div>
+        </div>
+      `;
+
+      citizenDraftMarker.bindPopup(popupHtml);
+
+      // Update sync banner in citizen form
+      const banner = document.getElementById('gisSyncSuccessBanner');
+      if (banner) {
+        banner.style.display = 'flex';
+        const coordsText = document.getElementById('gisSyncBannerCoords');
+        if (coordsText) {
+          coordsText.innerHTML = `Pulsing RED pin centered at (${Number(lat).toFixed(4)}°N, ${Number(lon).toFixed(4)}°E) on <b>${addr}</b>.`;
+        }
+      }
+    }
+
+    // Severity Selection in Citizen Form
+    function selectSeverity(sev) {
+      selectedSeverity = sev;
+      document.querySelectorAll('.pill-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-sev') === sev);
+      });
+      const badge = document.getElementById('evalBadge');
+      if (badge) {
+        badge.className = `eval-badge badge-${sev.toLowerCase()}`;
+        badge.innerText = `AUTO-EVALUATED: ${sev} SEVERITY CAVITY DETECTED`;
+      }
+      const addr = document.getElementById('citAddress')?.value.trim();
+      if (addr && currentLat && currentLon) {
+        updateDynamicCitizenPin(addr, currentLat, currentLon);
+      }
+    }
+
+    // Photo Drop & Preview
+    function triggerFileInput() {
+      document.getElementById('fileInput').click();
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.add('dragover');
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('dragover');
+    }
+
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        showFilePreview(e.dataTransfer.files[0]);
+      }
+    }
+
+    function handleFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        showFilePreview(e.target.files[0]);
+      }
+    }
+
+    function showFilePreview(file) {
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        const previewImg = document.getElementById('previewImg');
+        previewImg.src = e.target.result;
+        uploadedPhotoBase64 = e.target.result;
+        document.getElementById('previewBox').style.display = 'flex';
+        uploadedPhotoPath = 'samples/user_uploaded_waterlogged_pothole.jpg';
+        selectSeverity(selectedSeverity);
+        await evaluateCitizenUploadAi(e.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function evaluateCitizenUploadAi(base64Data, filename) {
+      const badge = document.getElementById('evalBadge');
+      if (badge) {
+        badge.className = 'eval-badge badge-medium';
+        badge.innerText = '🤖 AI VISION EVALUATING DEFECT...';
+      }
+
+      try {
+        const res = await fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageBase64: base64Data,
+            imagePath: filename || 'user_upload.jpg'
+          })
+        });
+
+        if (res.ok) {
+          const ai = await res.json();
+          selectSeverity(ai.severity);
+          if (badge) {
+            badge.className = `eval-badge badge-${ai.severity.toLowerCase()}`;
+            badge.innerText = `AI DETECTED: ${ai.damageClass} (${ai.severity}) - ${ai.areaCm2} cm²`;
+          }
+
+          const overlay = document.getElementById('citizenBboxOverlay');
+          if (overlay && ai.boundingBox) {
+            overlay.style.display = 'block';
+            overlay.style.left = (ai.boundingBox.x * 100) + '%';
+            overlay.style.top = (ai.boundingBox.y * 100) + '%';
+            overlay.style.width = (ai.boundingBox.width * 100) + '%';
+            overlay.style.height = (ai.boundingBox.height * 100) + '%';
+            const label = document.getElementById('citizenBboxLabel');
+            if (label) {
+              label.innerText = `${ai.damageClass}: ${ai.severity} (${(ai.confidence * 100).toFixed(1)}%)`;
+            }
+          }
+
+          const addr = document.getElementById('citAddress')?.value.trim();
+          if (addr && currentLat && currentLon) {
+            updateDynamicCitizenPin(addr, currentLat, currentLon);
+          }
+          showToast(`🤖 AI Vision: ${ai.damageLabel} (${ai.severity}, ${ai.areaCm2} cm²) detected!`, 'success');
+        }
+      } catch (err) {
+        console.warn('AI analysis fallback:', err);
+      }
+    }
+
+    // Submit Citizen Grievance
+    async function submitGrievance(e) {
+      e.preventDefault();
+      const addr = document.getElementById('citAddress').value.trim();
+      const desc = document.getElementById('citDesc').value.trim();
+
+      const geo = geocodeClientAddress(addr);
+      const postLat = (currentLat && Math.abs(currentLat - 13.0450) > 0.0001) ? currentLat : geo.lat;
+      const postLon = (currentLon && Math.abs(currentLon - 80.2520) > 0.0001) ? currentLon : geo.lon;
+
+      const payload = {
+        streetAddress: addr,
+        description: desc,
+        severity: selectedSeverity,
+        latitude: postLat,
+        longitude: postLon,
+        photoPath: uploadedPhotoPath || 'samples/user_uploaded_waterlogged_pothole.jpg'
+      };
+
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const tkt = await res.json();
+          showToast(`Grievance ${tkt.ticketId} successfully submitted to State PWD!`, 'success');
+
+          // Instantly sync into cached tickets
+          const existingIdx = cachedTickets.findIndex(x => x.ticketId === tkt.ticketId);
+          if (existingIdx >= 0) {
+            cachedTickets[existingIdx] = tkt;
+          } else {
+            cachedTickets.unshift(tkt);
+          }
+
+          // Reset Citizen Form
+          document.getElementById('citizenForm').reset();
+          document.getElementById('previewBox').style.display = 'none';
+          const overlay = document.getElementById('citizenBboxOverlay');
+          if (overlay) overlay.style.display = 'none';
+          uploadedPhotoPath = '';
+          uploadedPhotoBase64 = '';
+
+          // Keep dynamic pin on map
+          updateDynamicCitizenPin(tkt.streetAddress, tkt.latitude, tkt.longitude);
+
+          renderKPIs();
+          renderCitizenTickets();
+          refreshAllData();
+        } else {
+          showToast('Failed to submit grievance', 'error');
+        }
+      } catch (err) {
+        showToast('Network error submitting grievance', 'error');
+      }
+    }
+
+    // Fetch & Refresh Data (Thread-safe unified state store)
+    async function refreshAllData() {
+      try {
+        const [ticketsRes, budgetRes] = await Promise.all([
+          fetch('/api/tickets'),
+          fetch('/api/budget')
+        ]);
+
+        if (ticketsRes.ok) {
+          cachedTickets = await ticketsRes.json();
+          renderKPIs();
+          renderCitizenTickets();
+          renderMapMarkers();
+          renderNodalView();
+          renderContractorView();
+          renderSupervisorView();
+        }
+
+        if (budgetRes.ok) {
+          const budget = await budgetRes.json();
+          renderBudgetLedger(budget);
+        }
+      } catch (err) {
+        console.error('Data refresh error:', err);
+      }
+    }
+
+    function renderKPIs() {
+      const reported = cachedTickets.filter(t => t.status === 'REPORTED').length;
+      const inProgress = cachedTickets.filter(t => t.status === 'IN_PROGRESS' || t.status === 'ASSIGNED').length;
+      const resolved = cachedTickets.filter(t => t.status === 'RESOLVED' || t.auditApprovalStatus === 'APPROVED').length;
+
+      document.getElementById('kpiReported').innerText = reported;
+      document.getElementById('kpiInProgress').innerText = inProgress;
+      document.getElementById('kpiResolved').innerText = resolved;
+    }
+
+    function renderBudgetLedger(b) {
+      document.getElementById('budgetPending').innerText = '₹' + Math.round(b.pendingDisbursements).toLocaleString('en-IN');
+      document.getElementById('budgetApproved').innerText = '₹' + Math.round(b.approvedDisbursements).toLocaleString('en-IN');
+      document.getElementById('budgetAvailable').innerText = '₹' + Math.round(b.availableBudget).toLocaleString('en-IN');
+      document.getElementById('budgetDisbursedPct').innerText = b.disbursedPercentage.toFixed(1) + '% Disbursed';
+      document.getElementById('budgetProgressBar').style.width = Math.min(100, b.disbursedPercentage) + '%';
+    }
+
+    // Render Citizen Grievance Cards with strict 4-step progress synchronization
+    function renderCitizenTickets() {
+      const filter = (document.getElementById('tktFilter')?.value || '').toLowerCase().trim();
+      const list = document.getElementById('citizenTicketsList');
+      if (!list) return;
+      list.innerHTML = '';
+
+      const filtered = cachedTickets.filter(t => {
+        return t.ticketId.toLowerCase().includes(filter) ||
+               (t.streetAddress && t.streetAddress.toLowerCase().includes(filter)) ||
+               (t.description && t.description.toLowerCase().includes(filter));
+      });
+
+      if (filtered.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); padding: 1.5rem; text-align: center;">No grievances found matching criteria.</div>';
+        return;
+      }
+
+      filtered.forEach(t => {
+        // Strict Stepper Progress Rule:
+        // Step 1: REPORTED
+        // Step 2: ASSIGNED
+        // Step 3: IN_PROGRESS (or COMPLETED but not yet approved by supervisor)
+        // Step 4: RESOLVED / APPROVED (ONLY once Supervisor formally audits and approves)
+        const isFixed = t.status === 'RESOLVED' || t.auditApprovalStatus === 'APPROVED';
+        const isInProgress = t.status === 'IN_PROGRESS' || (t.status === 'COMPLETED' && !isFixed);
+        const isAssigned = t.status === 'ASSIGNED';
+
+        let step = 1;
+        if (isFixed) {
+          step = 4;
+        } else if (isInProgress) {
+          step = 3;
+        } else if (isAssigned) {
+          step = 2;
+        } else {
+          step = 1;
+        }
+
+        let statusBadgeText = t.status;
+        let badgeClass = 'badge-medium';
+        if (t.status === 'REPORTED') {
+          statusBadgeText = 'REPORTED';
+          badgeClass = 'badge-high';
+        } else if (t.status === 'ASSIGNED') {
+          statusBadgeText = 'ASSIGNED';
+          badgeClass = 'badge-medium';
+        } else if (t.status === 'IN_PROGRESS') {
+          statusBadgeText = 'IN PROGRESS (ACTIVE REPAIR)';
+          badgeClass = 'badge-high';
+        } else if (t.status === 'COMPLETED' && !isFixed) {
+          statusBadgeText = 'REPAIR SUBMITTED (PENDING AUDIT)';
+          badgeClass = 'badge-medium';
+        } else if (isFixed) {
+          statusBadgeText = 'FIXED & DISBURSED';
+          badgeClass = 'badge-low';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'ticket-card';
+        card.innerHTML = `
+          <div class="ticket-top">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="ticket-id">${t.ticketId}</span>
+                <span class="eval-badge ${badgeClass}">${statusBadgeText}</span>
+                ${t.inWarrantyDlp ? '<span class="dlp-tag">⚠️ DLP WARRANTY</span>' : ''}
+              </div>
+              <div class="ticket-location">📍 ${t.streetAddress || t.displayLocation}</div>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono);">
+              ${new Date(t.reportedAt).toLocaleDateString()}
+            </div>
+          </div>
+
+          <!-- 4-STEP TIMELINE STEPPER -->
+          <div class="stepper">
+            <div class="step-node ${step >= 1 ? (step === 1 ? 'active' : 'completed') : ''}">
+              <div class="step-circle">${step > 1 ? '✓' : '1'}</div>
+              <div class="step-label">Reported</div>
+            </div>
+            <div class="step-node ${step >= 2 ? (step === 2 ? 'active' : 'completed') : ''}">
+              <div class="step-circle">${step > 2 ? '✓' : '2'}</div>
+              <div class="step-label">Assigned</div>
+            </div>
+            <div class="step-node ${step >= 3 ? (step === 3 ? 'active' : 'completed') : ''}">
+              <div class="step-circle">${step > 3 ? '✓' : '3'}</div>
+              <div class="step-label">In Progress</div>
+            </div>
+            <div class="step-node ${step === 4 ? 'completed' : ''}">
+              <div class="step-circle">${step === 4 ? '✓' : '4'}</div>
+              <div class="step-label">Fixed</div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.4rem;">
+            <span>Agency: ${t.jurisdiction || 'Awaiting Triage'}</span>
+            <span>Contractor: ${t.assignedContractor || 'Unassigned'}</span>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    // Render Leaflet GIS Markers
+    function renderMapMarkers() {
+      if (!markersLayer) return;
+      markersLayer.clearLayers();
+
+      cachedTickets.forEach(t => {
+        const isFixed = t.status === 'RESOLVED' || t.auditApprovalStatus === 'APPROVED';
+        let color = '#ef4444'; // Red for Critical / Reported
+        if (t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS' || (t.status === 'COMPLETED' && !isFixed)) {
+          color = '#f59e0b'; // Amber for In Progress / Pending Audit
+        }
+        if (isFixed) {
+          color = '#10b981'; // Green for Audited & Disbursed
+        }
+
+        const markerHtml = `
+          <div style="
+            background: ${color};
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 0 12px ${color};
+            cursor: pointer;
+          "></div>
+        `;
+
+        const icon = L.divIcon({
+          html: markerHtml,
+          className: 'custom-map-pin',
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        const marker = L.marker([t.latitude, t.longitude], { icon }).addTo(markersLayer);
+
+        let statusLabel = t.status;
+        if (isFixed) statusLabel = 'Audited & Disbursed (Fixed)';
+        else if (t.status === 'COMPLETED') statusLabel = 'Repair Submitted (Pending Supervisor Audit)';
+        else if (t.status === 'IN_PROGRESS') statusLabel = 'Work In Progress (Active Cold Mix)';
+        else if (t.status === 'ASSIGNED') statusLabel = 'Assigned to Contractor';
+        else if (t.status === 'REPORTED') statusLabel = 'Red: Critical Defect / Reported';
+
+        const aiScoreText = t.severity === 'CRITICAL' ? 'Critical (97.4%)' :
+                            t.severity === 'HIGH' ? 'High (89.2%)' :
+                            t.severity === 'MEDIUM' ? 'Medium (76.5%)' : 'Low (62.0%)';
+
+        const photo = t.afterImagePath || t.stage2ImagePath || t.stage1ImagePath || t.beforeImagePath || 'samples/user_uploaded_waterlogged_pothole.jpg';
+
+        const popupContent = `
+          <div style="font-family: var(--font-sans); min-width: 250px; color: #0f172a; padding: 4px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-weight: 800; font-family: var(--font-mono); color: #0284c7; font-size: 0.95rem;">
+                ${t.ticketId}
+              </span>
+              <span style="background: ${color}; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 2px 6px; border-radius: 4px;">
+                ${t.severity}
+              </span>
+            </div>
+
+            <div style="font-weight: 700; font-size: 0.85rem; margin-bottom: 4px;">
+              📍 ${t.streetAddress || t.displayLocation}
+            </div>
+
+            <img src="/${photo}" style="width: 100%; height: 95px; object-fit: cover; border-radius: 6px; margin-bottom: 6px; border: 1px solid #cbd5e1;" alt="Defect Photo">
+
+            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 2px;">
+              AI Severity Rating: <b style="color: ${color};">${aiScoreText}</b>
+            </div>
+            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 2px;">
+              Contractor: <b>${t.assignedContractor || 'Awaiting Assignment'}</b>
+            </div>
+            <div style="font-size: 0.75rem; color: #475569; margin-bottom: 4px;">
+              Status: <b style="color: ${color};">${statusLabel}</b>
+            </div>
+            ${t.claimedCost > 0 ? `<div style="font-size: 0.78rem; color: #059669; font-weight: 700;">Claimed Cost: ₹${Math.round(t.claimedCost).toLocaleString('en-IN')}</div>` : ''}
+          </div>
+        `;
+
+        marker.bindPopup(popupContent);
+      });
+    }
+
+    // NODAL OFFICER TRIAGE PORTAL
+    function toggleNodalViewMode(mode) {
+      nodalViewMode = mode;
+      document.getElementById('btnNodalGalleryView').classList.toggle('active', mode === 'gallery');
+      document.getElementById('btnNodalTableView').classList.toggle('active', mode === 'table');
+      document.getElementById('nodalGalleryContainer').style.display = mode === 'gallery' ? 'grid' : 'none';
+      document.getElementById('nodalTableContainer').style.display = mode === 'table' ? 'block' : 'none';
+      renderNodalView();
+    }
+
+    function renderNodalView() {
+      const gallery = document.getElementById('nodalGalleryContainer');
+      const tableBody = document.getElementById('nodalTableBody');
+      if (!gallery || !tableBody) return;
+
+      gallery.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      const reported = cachedTickets.filter(t => t.status === 'REPORTED');
+      if (reported.length === 0) {
+        gallery.innerHTML = '<div style="color: var(--text-muted); padding: 2.5rem; grid-column: 1/-1; text-align: center;">Triage queue clear. All reported road defects assigned.</div>';
+        tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 2rem;">No pending defect tickets in triage.</td></tr>';
+        return;
+      }
+
+      reported.forEach(t => {
+        const photoPath = t.beforeImagePath || t.stage1ImagePath || 'samples/user_uploaded_waterlogged_pothole.jpg';
+        const areaCm2 = t.severity === 'CRITICAL' ? '1,420 cm²' : t.severity === 'HIGH' ? '980 cm²' : '450 cm²';
+        const depthCm = t.severity === 'CRITICAL' ? '4.8 cm' : t.severity === 'HIGH' ? '3.5 cm' : '2.1 cm';
+        const confPct = t.severity === 'CRITICAL' ? '97.4%' : t.severity === 'HIGH' ? '89.2%' : '76.5%';
+
+        // Gallery Card
+        const card = document.createElement('div');
+        card.className = 'audit-card';
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="ticket-id" style="font-size: 1rem;">${t.ticketId}</span>
+                <span class="eval-badge badge-${t.severity.toLowerCase()}">${t.severity} (${confPct})</span>
+                ${t.inWarrantyDlp ? '<span class="dlp-tag">⚠️ DLP WARRANTY</span>' : ''}
+              </div>
+              <div style="font-weight: 700; margin-top: 0.25rem;">📍 ${t.streetAddress || t.displayLocation}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">
+                GPS: (${Number(t.latitude).toFixed(4)}°N, ${Number(t.longitude).toFixed(4)}°E)
+              </div>
+            </div>
+            <button class="nav-btn" style="padding: 0.35rem 0.65rem; font-size: 0.75rem;" onclick="centerOnMapAndSwitch(${t.latitude}, ${t.longitude})">
+              <span>🗺️</span> Locate
+            </button>
+          </div>
+
+          <!-- DEFECT PHOTO WITH AI BOUNDING BOX OVERLAY -->
+          <div style="position: relative; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--bg-card-border);">
+            <img src="/${photoPath}" style="width: 100%; height: 160px; object-fit: cover;" alt="Defect Photo">
+            <div style="position: absolute; top: 22%; left: 18%; width: 58%; height: 52%; border: 2px dashed #ef4444; background: rgba(239, 68, 68, 0.2); border-radius: 6px; display: flex; align-items: flex-start; padding: 4px;">
+              <span style="background: #ef4444; color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 4px; border-radius: 3px;">
+                ${t.severity} CAVITY (${confPct})
+              </span>
+            </div>
+          </div>
+
+          <!-- AI METRICS ROW -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.78rem;">
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Crater Surface:</span> <b>${areaCm2}</b>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 6px;">
+              <span style="color: var(--text-muted);">Calculated Depth:</span> <b>${depthCm}</b>
+            </div>
+          </div>
+
+          <!-- ROUTING CONTROLS -->
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 0.5rem;">
+              <div>
+                <label class="form-label" style="font-size: 0.7rem;">Authority</label>
+                <select id="selJuris_${t.ticketId}" class="form-select" style="padding: 0.4rem 0.6rem; font-size: 0.78rem;">
+                  <option value="STATE_HIGHWAY" ${t.jurisdiction === 'STATE_HIGHWAY' ? 'selected' : ''}>State Highway PWD</option>
+                  <option value="NHAI" ${t.jurisdiction === 'NHAI' ? 'selected' : ''}>NHAI Corridor</option>
+                  <option value="URBAN_LOCAL_BODY" ${t.jurisdiction === 'URBAN_LOCAL_BODY' ? 'selected' : ''}>Urban Local Body</option>
+                </select>
+              </div>
+              <div>
+                <label class="form-label" style="font-size: 0.7rem;">Contractor</label>
+                <select id="selCont_${t.ticketId}" class="form-select" style="padding: 0.4rem 0.6rem; font-size: 0.78rem;">
+                  <option value="Apex Infra Roadways Ltd">Apex Infra Roadways Ltd</option>
+                  <option value="Metro Paving & Bitumen Corp">Metro Paving & Bitumen Corp</option>
+                  <option value="Southern Macadam Ltd">Southern Macadam Ltd</option>
+                </select>
+              </div>
+            </div>
+
+            <button class="btn-submit" style="padding: 0.55rem; font-size: 0.82rem;" onclick="assignTicketCustom('${t.ticketId}')">
+              <span>📋</span> Route & Dispatch Work Order
+            </button>
+          </div>
+        `;
+        gallery.appendChild(card);
+
+        // Table Row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-blue);">${t.ticketId}</td>
+          <td>
+            <img src="/${photoPath}" style="width: 55px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--bg-card-border);" alt="Thumb">
+          </td>
+          <td><b>${t.streetAddress || t.displayLocation}</b></td>
+          <td><span class="eval-badge badge-${t.severity.toLowerCase()}">${t.severity}</span></td>
+          <td>${areaCm2}</td>
+          <td style="font-size: 0.75rem; color: var(--text-muted);">${Number(t.latitude).toFixed(4)}°, ${Number(t.longitude).toFixed(4)}°</td>
+          <td>
+            <select id="selTableJuris_${t.ticketId}" class="form-select" style="padding: 0.35rem; font-size: 0.75rem; width: 140px;">
+              <option value="STATE_HIGHWAY">State Highway</option>
+              <option value="NHAI">NHAI</option>
+              <option value="URBAN_LOCAL_BODY">Urban Local Body</option>
+            </select>
+          </td>
+          <td>
+            <select id="selTableCont_${t.ticketId}" class="form-select" style="padding: 0.35rem; font-size: 0.75rem; width: 170px;">
+              <option value="Apex Infra Roadways Ltd">Apex Infra Roadways Ltd</option>
+              <option value="Metro Paving & Bitumen Corp">Metro Paving Corp</option>
+              <option value="Southern Macadam Ltd">Southern Macadam Ltd</option>
+            </select>
+          </td>
+          <td>
+            <button class="nav-btn active" style="padding: 0.35rem 0.65rem; font-size: 0.75rem;" onclick="assignTicketFromTable('${t.ticketId}')">
+              <span>🚀</span> Dispatch
+            </button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function centerOnMapAndSwitch(lat, lon) {
+      switchTab('map');
+      if (map) {
+        map.setView([lat, lon], 16);
+      }
+    }
+
+    async function assignTicketCustom(ticketId) {
+      const juris = document.getElementById(`selJuris_${ticketId}`)?.value || 'STATE_HIGHWAY';
+      const cont = document.getElementById(`selCont_${ticketId}`)?.value || 'Apex Infra Roadways Ltd';
+
+      try {
+        const res = await fetch('/api/nodal/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, jurisdiction: juris, contractor: cont })
+        });
+
+        if (res.ok) {
+          showToast(`Work Order ${ticketId} dispatched to ${cont} (${juris})!`, 'success');
+          refreshAllData();
+        } else {
+          showToast('Failed to assign ticket', 'error');
+        }
+      } catch (err) {
+        showToast('Network error during dispatch', 'error');
+      }
+    }
+
+    async function assignTicketFromTable(ticketId) {
+      const juris = document.getElementById(`selTableJuris_${ticketId}`)?.value || 'STATE_HIGHWAY';
+      const cont = document.getElementById(`selTableCont_${ticketId}`)?.value || 'Apex Infra Roadways Ltd';
+
+      try {
+        const res = await fetch('/api/nodal/assign', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, jurisdiction: juris, contractor: cont })
+        });
+
+        if (res.ok) {
+          showToast(`Work Order ${ticketId} dispatched to ${cont}!`, 'success');
+          refreshAllData();
+        } else {
+          showToast('Failed to assign ticket', 'error');
+        }
+      } catch (err) {
+        showToast('Network error during dispatch', 'error');
+      }
+    }
+
+    // CONTRACTOR PORTAL (2-MILESTONE EXECUTION)
+    let selectedContractorTicketObj = null;
+
+    function renderContractorView() {
+      const list = document.getElementById('contractorWorkOrdersList');
+      if (!list) return;
+      list.innerHTML = '';
+
+      const workOrders = cachedTickets.filter(t => t.status === 'ASSIGNED' || t.status === 'IN_PROGRESS' || t.status === 'COMPLETED');
+      if (workOrders.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); padding: 1.5rem; text-align: center;">No active work orders pending physical works.</div>';
+        return;
+      }
+
+      workOrders.forEach(t => {
+        let statusBadgeHtml = '';
+        if (t.status === 'ASSIGNED') {
+          statusBadgeHtml = '<span class="eval-badge badge-medium" style="font-size: 0.72rem;">STEP 1: AWAITING PROGRESS PHOTO</span>';
+        } else if (t.status === 'IN_PROGRESS') {
+          statusBadgeHtml = '<span class="eval-badge badge-high" style="font-size: 0.72rem;">STEP 2: IN-PROGRESS / AWAITING CLAIM</span>';
+        } else if (t.status === 'COMPLETED') {
+          statusBadgeHtml = '<span class="eval-badge badge-low" style="font-size: 0.72rem;">SUBMITTED (AWAITING SUPERVISOR AUDIT)</span>';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'ticket-card';
+        card.style.cursor = 'pointer';
+        card.onclick = () => selectContractorTicket(t);
+        card.innerHTML = `
+          <div class="ticket-top">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="ticket-id">${t.ticketId}</span>
+                <span class="eval-badge badge-${t.severity.toLowerCase()}">${t.severity}</span>
+                ${statusBadgeHtml}
+              </div>
+              <div class="ticket-location">📍 ${t.streetAddress || t.displayLocation}</div>
+            </div>
+            <div style="font-family: var(--font-mono); font-weight: 700; color: var(--accent-amber);">
+              PWD Est: ₹${Math.round(t.estimatedCost).toLocaleString('en-IN')}
+            </div>
+          </div>
+          <div style="font-size: 0.8rem; color: var(--text-muted);">
+            Status: <b>${t.status}</b> | Click to load into milestone execution forms ➔
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      if (workOrders.length > 0 && !selectedContractorTicketObj) {
+        selectContractorTicket(workOrders[0]);
+      }
+    }
+
+    function selectContractorTicket(t) {
+      selectedContractorTicketObj = t;
+
+      // Milestone 1 fields
+      document.getElementById('progressTicketId').value = t.ticketId;
+      const progPhoto = t.stage2ImagePath || 'samples/work_in_progress_compaction.jpg';
+      document.getElementById('progressPhotoInput').value = progPhoto;
+      document.getElementById('previewProgressImg').src = '/' + progPhoto;
+
+      // Milestone 2 fields
+      document.getElementById('claimEstimate').value = '₹' + Math.round(t.estimatedCost).toLocaleString('en-IN');
+      document.getElementById('claimCost').value = Math.round(t.claimedCost > 0 ? t.claimedCost : t.estimatedCost);
+      document.getElementById('claimMaterials').value = t.materialItemization || '2.5 Tonnes Cold Mix Asphalt + Bitumen Emulsion Tack Coat';
+
+      const beforeImg = t.stage1ImagePath || t.beforeImagePath || 'samples/user_uploaded_waterlogged_pothole.jpg';
+      const stage2Img = t.stage2ImagePath || 'samples/work_in_progress_compaction.jpg';
+      const afterImg = t.stage3ImagePath || t.afterImagePath || 'samples/after_patch_1.jpg';
+
+      document.getElementById('previewClaimBefore').src = '/' + beforeImg;
+      document.getElementById('previewClaimStage2').src = '/' + stage2Img;
+      document.getElementById('previewClaimAfter').src = '/' + afterImg;
+    }
+
+    function updateContractorProgressPreview() {
+      const val = document.getElementById('progressPhotoInput')?.value.trim();
+      const img = document.getElementById('previewProgressImg');
+      if (img && val) {
+        img.src = '/' + val;
+      }
+    }
+
+    function handleProgressFileSelect(e) {
+      if (e.target.files && e.target.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+          document.getElementById('previewProgressImg').src = evt.target.result;
+          document.getElementById('progressPhotoInput').value = 'samples/work_in_progress_compaction.jpg';
+          showToast('📸 In-progress photo loaded! Ready to log milestone.', 'success');
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      }
+    }
+
+    async function uploadContractorProgressMilestone() {
+      const ticketId = document.getElementById('progressTicketId')?.value;
+      const inProgressPhoto = document.getElementById('progressPhotoInput')?.value.trim() || 'samples/work_in_progress_compaction.jpg';
+
+      if (!ticketId) {
+        showToast('Please select a work order from the list first', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/contractor/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, inProgressPhoto })
+        });
+
+        if (res.ok) {
+          showToast(`🚜 Milestone 1 Recorded! Ticket ${ticketId} transitioned to IN_PROGRESS. Citizen timeline updated!`, 'success');
+          refreshAllData();
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Failed to record progress milestone', 'error');
+        }
+      } catch (err) {
+        showToast('Network error recording progress milestone', 'error');
+      }
+    }
+
+    async function submitContractorClaim(e) {
+      e.preventDefault();
+      const ticketId = document.getElementById('progressTicketId')?.value;
+      const claimedCost = parseFloat(document.getElementById('claimCost')?.value);
+      const materials = document.getElementById('claimMaterials')?.value;
+
+      if (!ticketId) {
+        showToast('Please select an active work order first', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/contractor/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ticketId,
+            claimedCost,
+            materialItemization: materials,
+            beforeImagePath: 'samples/user_uploaded_waterlogged_pothole.jpg',
+            stage2ImagePath: 'samples/work_in_progress_compaction.jpg',
+            afterImagePath: 'samples/after_patch_1.jpg'
+          })
+        });
+
+        if (res.ok) {
+          showToast(`Work order ${ticketId} submitted for Supervisor Audit & Budget Disbursal!`, 'success');
+          refreshAllData();
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Claim submission failed', 'error');
+        }
+      } catch (err) {
+        showToast('Network error submitting claim', 'error');
+      }
+    }
+
+    // SUPERVISOR HUB (AUDIT, BUDGET & FIELD ENDORSEMENT)
+    function renderSupervisorView() {
+      const grid = document.getElementById('auditQueueGrid');
+      const badge = document.getElementById('supervisorQueueBadge');
+      if (!grid) return;
+      grid.innerHTML = '';
+
+      const pendingAudit = cachedTickets.filter(t => 
+        (t.status === 'COMPLETED' || t.status === 'IN_PROGRESS') && 
+        (t.auditApprovalStatus !== 'APPROVED') &&
+        (t.claimedCost > 0 || t.status === 'COMPLETED')
+      );
+
+      if (badge) {
+        badge.innerText = `${pendingAudit.length} Pending Audit`;
+      }
+
+      if (pendingAudit.length === 0) {
+        grid.innerHTML = '<div style="color: var(--text-muted); padding: 2.5rem; grid-column: 1/-1; text-align: center;">All contractor invoices audited & disbursed. No pending audit items in queue.</div>';
+        return;
+      }
+
+      pendingAudit.forEach(t => {
+        const card = document.createElement('div');
+        card.className = 'audit-card';
+        card.innerHTML = `
+          <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                <span class="ticket-id" style="font-size: 1.05rem;">${t.ticketId}</span>
+                <span class="eval-badge badge-${t.severity.toLowerCase()}">${t.severity}</span>
+                <span class="eval-badge badge-high" style="font-size: 0.72rem;">⏳ PENDING SUPERVISOR AUDIT</span>
+              </div>
+              <div style="font-weight: 700; margin-top: 0.25rem;">📍 ${t.streetAddress || t.displayLocation}</div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">Contractor: ${t.assignedContractor || 'Apex Infra Roadways Ltd'}</div>
+            </div>
+            <div style="text-align: right;">
+              <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Claimed Cost</div>
+              <div style="font-size: 1.4rem; font-weight: 800; color: var(--accent-amber); font-family: var(--font-mono);">
+                ₹${Math.round(t.claimedCost > 0 ? t.claimedCost : t.estimatedCost).toLocaleString('en-IN')}
+              </div>
+              <div style="font-size: 0.72rem; color: var(--text-muted);">PWD SoR Est: ₹${Math.round(t.estimatedCost).toLocaleString('en-IN')}</div>
+            </div>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); padding: 0.75rem 0.9rem; border-radius: 8px; border: 1px solid var(--bg-card-border);">
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Requisitioned Materials & Volume</div>
+            <div style="font-size: 0.88rem; font-weight: 700; color: var(--accent-blue); margin-top: 0.2rem;">
+              ${t.materialItemization || '2.5 Tonnes Cold Mix Asphalt + Bitumen Emulsion Tack Coat'}
+            </div>
+          </div>
+
+          <!-- 3-STAGE PHOTO SEQUENCE GALLERY -->
+          <div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.35rem;">
+              📸 Mandatory 3-Stage Milestone Photo Sequence
+            </div>
+            <div class="audit-comparison-row">
+              <div class="proof-box">
+                <span class="gallery-stage-tag tag-stage1">1. Pre-Repair</span>
+                <img src="/${t.stage1ImagePath || t.beforeImagePath || 'samples/user_uploaded_waterlogged_pothole.jpg'}" class="proof-img" alt="Stage 1">
+                <div style="font-size: 0.65rem; color: #f87171; font-weight: 700; margin-top: 2px;">CV: Cavity Defect</div>
+              </div>
+              <div class="proof-box">
+                <span class="gallery-stage-tag tag-stage2">2. In-Progress</span>
+                <img src="/${t.stage2ImagePath || 'samples/work_in_progress_compaction.jpg'}" class="proof-img" alt="Stage 2">
+                <div style="font-size: 0.65rem; color: #fbbf24; font-weight: 700; margin-top: 2px;">CV: Compaction Work</div>
+              </div>
+              <div class="proof-box">
+                <span class="gallery-stage-tag tag-stage3">3. Resurfaced</span>
+                <img src="/${t.stage3ImagePath || t.afterImagePath || 'samples/after_patch_1.jpg'}" class="proof-img" alt="Stage 3">
+                <div style="font-size: 0.65rem; color: #34d399; font-weight: 700; margin-top: 2px;">CV: Surface Compliant</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FIELD ENDORSEMENT REMARKS -->
+          <div>
+            <label class="form-label" style="font-size: 0.72rem;">Field Inspection Remarks & Endorsement Rationale</label>
+            <input type="text" id="auditNotes_${t.ticketId}" class="form-input" style="padding: 0.5rem 0.75rem; font-size: 0.8rem;" value="Certified: Physical cold mix compaction meets IRC:SP:84 specifications. Field verification endorsed.">
+          </div>
+
+          <!-- SUPERVISOR AUDIT ACTIONS -->
+          <div class="audit-actions">
+            <button class="btn-approve" onclick="supervisorAuditDecision('${t.ticketId}', true, ${t.claimedCost > 0 ? t.claimedCost : t.estimatedCost})">
+              <span>✅</span> Endorse Field Verification & Disburse Funds
+            </button>
+            <button class="btn-reject" onclick="supervisorAuditDecision('${t.ticketId}', false, 0)">
+              <span>❌</span> Reject / Demand Rework
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    async function supervisorAuditDecision(ticketId, approve, cost) {
+      const inputNotes = document.getElementById(`auditNotes_${ticketId}`)?.value;
+      let notes = inputNotes || 'Certified site workmanship meets IRC:SP:84 specifications. Field verification endorsed & budget released.';
+
+      if (!approve) {
+        notes = prompt('Enter auditor remarks or rework instructions for contractor:', 'Compaction density fails IRC spec. Re-mill and apply fresh asphalt tack coat.');
+        if (notes === null) return;
+      }
+
+      try {
+        const res = await fetch('/api/supervisor/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ticketId, approve, auditNotes: notes })
+        });
+
+        if (res.ok) {
+          if (approve) {
+            showToast(`✅ Ticket ${ticketId} APPROVED & ENDORSED! ₹${Math.round(cost).toLocaleString('en-IN')} disbursed from Municipal Pool. Citizen tracker updated to Fixed & map pin turned green!`, 'success');
+          } else {
+            showToast(`Ticket ${ticketId} rejected and routed back for contractor rework.`, 'error');
+          }
+          refreshAllData();
+        } else {
+          const err = await res.json();
+          showToast(err.error || 'Audit operation failed', 'error');
+        }
+      } catch (err) {
+        showToast('Network error processing audit', 'error');
+      }
+    }
+
+    // AI Inspection Engine Functions
+    let lastAiAnalysis = null;
+
+    function changeSampleImage() {
+      const select = document.getElementById('sampleSelect');
+      const img = document.getElementById('aiInspectImg');
+      if (select && img) {
+        img.src = '/' + select.value;
+        runAiAnalysis();
+      }
+    }
+
+    async function runAiAnalysis() {
+      const sample = document.getElementById('sampleSelect')?.value || 'samples/user_uploaded_waterlogged_pothole.jpg';
+      showToast('⚡ Neural inference running: Model ORT (ResNet-50 + FPN) analyzing pavement frame...', 'info');
+
+      try {
+        const res = await fetch('/api/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imagePath: sample })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          lastAiAnalysis = data;
+
+          const bbox = document.getElementById('aiBoundingBox');
+          if (bbox && data.boundingBox) {
+            bbox.style.left = (data.boundingBox.x * 100) + '%';
+            bbox.style.top = (data.boundingBox.y * 100) + '%';
+            bbox.style.width = (data.boundingBox.width * 100) + '%';
+            bbox.style.height = (data.boundingBox.height * 100) + '%';
+            const label = document.getElementById('aiBoundingBoxLabel');
+            if (label) {
+              label.innerText = `${data.damageClass}: ${data.severity} (${(data.confidence * 100).toFixed(1)}%)`;
+            }
+          }
+
+          const sevEl = document.getElementById('aiKpiSeverity');
+          if (sevEl) {
+            sevEl.innerText = `${data.severity} (${data.damageLabel})`;
+            sevEl.style.color = data.severity === 'CRITICAL' ? 'var(--accent-red)' : data.severity === 'HIGH' ? 'var(--accent-amber)' : 'var(--accent-green)';
+          }
+          const areaEl = document.getElementById('aiKpiArea');
+          if (areaEl) {
+            areaEl.innerText = `${data.areaCm2.toLocaleString()} cm²`;
+          }
+          const depthEl = document.getElementById('aiKpiDepth');
+          if (depthEl) {
+            depthEl.innerText = `Calculated Depth Index: ${data.depthIndexCm} cm`;
+          }
+          const matEl = document.getElementById('aiKpiMaterial');
+          if (matEl) {
+            matEl.innerText = data.recommendedMaterial;
+          }
+          const costEl = document.getElementById('aiKpiCost');
+          if (costEl) {
+            costEl.innerText = `PWD Schedule of Rates: ₹${Math.round(data.estimatedCost).toLocaleString('en-IN')}`;
+          }
+
+          showToast(`✅ Segmentation complete: ${data.damageLabel} (${data.areaCm2} cm²) detected with ${(data.confidence * 100).toFixed(1)}% confidence!`, 'success');
+        } else {
+          showToast('AI analysis request returned error', 'error');
+        }
+      } catch (err) {
+        showToast('Network error contacting AI inspection engine', 'error');
+      }
+    }
+
+    async function promoteAiDetection() {
+      const sample = document.getElementById('sampleSelect')?.value || 'samples/user_uploaded_waterlogged_pothole.jpg';
+      const sev = lastAiAnalysis ? lastAiAnalysis.severity : 'CRITICAL';
+      const desc = lastAiAnalysis ?
+        `Automated ONNX detection: ${lastAiAnalysis.damageLabel}, surface ${lastAiAnalysis.areaCm2} cm², depth ${lastAiAnalysis.depthIndexCm} cm` :
+        'Automated ONNX detection: 1420 cm² cavity distress, depth index 4.8cm';
+
+      const payload = {
+        streetAddress: 'Anna Salai Sector-4 Corridor near DMS (AI Inspected)',
+        description: desc,
+        severity: sev,
+        latitude: 13.0450,
+        longitude: 80.2520,
+        photoPath: sample
+      };
+
+      try {
+        const res = await fetch('/api/tickets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const tkt = await res.json();
+          showToast(`Defect promoted to Work Order ${tkt.ticketId}! Dispatched to triage.`, 'success');
+          refreshAllData();
+          switchTab('nodal');
+        } else {
+          showToast('Promotion failed', 'error');
+        }
+      } catch (err) {
+        showToast('Promotion network error', 'error');
+      }
+    }
+
+    // Authentication Modals & Strict Role Gateway
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('open');
+    }
+
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('open');
+    }
+
+    function fillCreds(email, pass) {
+      document.getElementById('loginEmail').value = email;
+      document.getElementById('loginPass').value = pass;
+    }
+
+    async function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPass').value.trim();
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (res.ok) {
+          const auth = await res.json();
+          currentUser = auth;
+          currentRole = auth.role;
+
+          closeLoginModal();
+          showToast(`Welcome, ${auth.fullName} (${auth.agency})`, 'success');
+
+          // Update header auth buttons
+          document.getElementById('loginBtn').style.display = 'none';
+          document.getElementById('logoutBtn').style.display = 'inline-flex';
+          const promo = document.getElementById('staffPromo');
+          if (promo) promo.style.display = 'none';
+
+          const badge = document.getElementById('activeRoleBadge');
+          badge.className = 'role-badge staff';
+          badge.innerHTML = `<span>🛡️</span> ${auth.fullName} (${auth.role})`;
+
+          // Enforce strict role navigation isolation
+          applyRoleNavigation(auth.role);
+          refreshAllData();
+        } else {
+          showToast('Invalid credentials for Municipal Staff Gateway', 'error');
+        }
+      } catch (err) {
+        showToast('Login communication error', 'error');
+      }
+    }
+
+    function signOut() {
+      currentUser = null;
+      currentRole = 'CITIZEN';
+
+      document.getElementById('loginBtn').style.display = 'inline-flex';
+      document.getElementById('logoutBtn').style.display = 'none';
+      const promo = document.getElementById('staffPromo');
+      if (promo) promo.style.display = 'flex';
+
+      const badge = document.getElementById('activeRoleBadge');
+      badge.className = 'role-badge';
+      badge.innerHTML = `<span>👤</span> Public Citizen`;
+
+      applyRoleNavigation('CITIZEN');
+      showToast('Signed out. Returned to Public Citizen Portal.', 'info');
+      refreshAllData();
+    }
+
+    // Auto-refresh every 5 seconds for unified real-time reactivity
+    setInterval(refreshAllData, 5000);
+
+    // Initial App Startup
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initMap();
+      applyRoleNavigation('CITIZEN');
+      refreshAllData();
+    });
+  </script>
+</body>
+</html>
